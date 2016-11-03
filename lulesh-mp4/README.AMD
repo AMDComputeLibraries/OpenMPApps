@@ -29,5 +29,27 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
 
-# OpenMPApps
-OpenMP GPU Accelerated Applications 
+This code started from the lulesh OpenMP4 version at 
+https://codesign.llnl.gov/lulesh/lulesh2_OMP4.tgz.  
+
+
+To compile: 
+---------------
+*	Type make in src-omp directory 
+*	Paths to the omptargetlib must be set before compiling. The following env.
+*	variables help to set all the necessasry paths.
+
+export OMPTARGET_LIBS=/usr/local/libomptarget/lib
+export PATH=$CUDA/bin:$PATH
+export LIBOMP_LIB=/usr/local/intel_openmp_rt/lib
+export LIBRARY_PATH=$OMPTARGET_LIBS:$CUDA/nvvm/libdevice
+export LD_LIBRARY_PATH=$LIBOMP_LIB:$OMPTARGET_LIBS:$CUDA/targets/x86_64-linux/lib
+export CLANG=/usr/local/llvm_openmp/bin/clang
+
+*	A binary should be created in the ../bin directory
+
+To run: 
+----------------
+*   ./lulesh2.0  You can use -s NN to set the problem set size
+
+

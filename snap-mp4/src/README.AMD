@@ -1,0 +1,349 @@
+/*******************************************************************************
+Copyright (c) 2016 Advanced Micro Devices, Inc.
+
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors
+may be used to endorse or promote products derived from this software without
+specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*******************************************************************************/
+
+This SNAP code is modified with OpenMP4 pragmas to support execution on
+accelerator devices, specifically GPU's.
+
+This OpenMP4 port started with the OpenCL C code contributed by Tom Deakin of
+the University of Bristol.  That code is found at:
+https://github.com/UoB-HPC/SNAP_MPI_OpenCL
+
+Minor modifications are made to the code before the OpenMP4 porting effort.
+These changes include adding a inner loop counter and print statement to more
+closely match the original SNAP fortran code, resolving an issue with
+correctness of the first iteration, and arranging some parameter defaults to
+more closely match the original fortran.  All of these changes were primarily
+for valiadation purposes so that the OpenCL output would match the fortran
+output for a nearly matching input file.   After these changes, it is possible
+to directly compare the OpenCL output to the Fortran output.
+
+Next the code was ported to the AMD HCC environment and then ported to use
+OpenMP4 directives. 
+
+All of these ports parallelize and offload key parts of the SNAP program,
+including the dim3 sweep inner loop, scalar flux and moment calculations, 
+and inner and outer source computations.
+
+The compiler used is an experimental clang compiler.  This compiler accepts
+OpenMP4 target pragmas and emits code suitable for a GPU target device, in
+this case a nVidia GTX 980.
+The rev in use at the time of writing is clang-3.8, compiled by AMD on 12/18/15.
+
+The primary GPU work arrangement is to run the xyz space coordinates at the
+team level, and groups*angles at the thread level.
+It should be noted that OpenMP4 does not support 2D kernels as such, but it is
+possible to properly collapse inner loops to acheive the same effect.
+This seems more natural to an OpenMP programmer, but requires some thinking
+to properly transition from a GPU programming mindset.
+
+A typical OpenMP4 clause looks like:
+
+    unsigned int nang = problem->nang;
+    unsigned int nx = rankinfo->nx;
+    unsigned int ny = rankinfo->ny;
+    unsigned int nz = rankinfo->nz;
+    unsigned int ng = problem->ng;
+    unsigned int cmom = problem->cmom;
+
+    size_t cgxyz = cmom*ng*nx*ny*nz;
+    size_t agxyz = ng*nang*nx*ny*nz;
+
+    struct cell_id * plane =  buffers->planes[this_plane];
+    size_t num_cells = planes[this_plane].num_cells;
+    size_t ncg = num_cells*ng;
+
+    double * source =  buffers->inner_source;
+    double * scat_coeff =  buffers->scat_coeff;
+    double * dd_i =  buffers->dd_i;
+    double * dd_j =  buffers->dd_j;
+    double * dd_k =  buffers->dd_k;
+    double * mu =  buffers->mu;
+
+    double * velocity_delta =  buffers->velocity_delta;
+    double * mat_cross_section =  buffers->mat_cross_section;
+    double * denominator =  buffers->denominator;
+    double * angular_flux_in =  buffers->angular_flux_in[octant];
+    double * flux_i =  buffers->flux_i;
+    double * flux_j =  buffers->flux_j;
+    double * flux_k =  buffers->flux_k;
+    double * angular_flux_out =  buffers->angular_flux_out[octant];
+
+    // 2 dimensional kernel
+    // First dimension: number of angles * number of groups
+    // Second dimension: number of cells in plane
+
+#pragma omp target data map(to: plane[:1], \
+                            source[:cgxyz], \
+                            scat_coeff[:nang*cmom*8], \
+                            dd_i[:1], \
+                            dd_j[:nang], \
+                            dd_k[:nang], \
+                            mu[:nang], \
+                            velocity_delta[:ng], \
+                            mat_cross_section[:ng], \
+                            denominator[:agxyz], \
+                            angular_flux_in[:agxyz], \
+                            z_pos,istep,jstep,kstep, \
+                            ncg,num_cells,nx,ny,nz,ng,nang,cmom,octant) \
+                        map(from: angular_flux_out[:agxyz]) \
+                        map(tofrom: flux_i[:ng*nang*ny*nz], \
+                            flux_j[:ng*nang*nx*nz], \
+                            flux_k[:ng*nang*nx*ny])
+
+#pragma omp target teams distribute num_teams(num_cells) thread_limit(ng*nang)
+    for (int cidx = 0; cidx < num_cells; cidx++)
+    {
+#pragma omp parallel for  collapse(2)
+       for(int g = 0; g<ng; g++)
+       {
+          for(int a = 0; a<nang; a++)
+          {
+    // Read cell index from plane buffer
+    const size_t i = (istep > 0) ? plane[cidx].i         : nx - plane[cidx].i         - 1;
+    const size_t j = (jstep > 0) ? plane[cidx].j         : ny - plane[cidx].j         - 1;
+    const size_t k = (kstep > 0) ? plane[cidx].k + z_pos : nz - plane[cidx].k - z_pos - 1;
+
+
+As can be seen, an extensive target data mapping clause must be carefully
+constructed ensure proper data movement, and temporary pointers are required
+to dereference the many data pointers normally kept in data structures.
+
+Reductions are fully working on a team basis. 
+
+An issue with the linker required a change to the makefile.  The issue
+is a improper detection of multiply defined externals associated with kernel
+data sections.   The fix is to concatenate 4 of the source files to one file
+and compile as one.
+
+
+The Makefile builds on our AMD system
+just by typing "make" and builds the target exe snap.
+To run, we use the command:
+snap snap_input
+
+Sample output:
+ SNAP: SN (Discrete Ordinates) Application Proxy
+ MPI+HCC port
+ Run on Mon Aug  8 16:54:04 2016
+
+
+********************************************************
+  Input Parameters
+********************************************************
+ Geometry
+   Problem size:                  0.100 x 0.100 x 0.100
+   Cells:                             8 x     8 x     8
+   Cell size:                     0.013 x 0.013 x 0.013
+
+ Discrete Ordinates
+   Angles per octant:             64
+   Moments:                       2
+   "Computational" moments:       4
+
+ Energy groups
+   Number of groups:              30
+
+ Timesteps
+   Timesteps:                     10
+   Simulation time:               0.100
+   Time delta:                    0.010
+
+ Iterations
+   Max outers per timestep:       10
+   Max inners per outer:          5
+   Stopping criteria
+     Inner convergence:           1.00E-04
+     Outer convergence:           1.00E-02
+
+ MPI decomposition
+   Rank layout:                   1 x 1 x 1
+   Chunk size:                    8
+
+device : GTX 980
+device memory: 3221225472
+********************************************************
+  Iteration Monitor
+********************************************************
+ Timestep 0
+   Outer      Difference      Inners
+     0         5.0678e-02      3
+     1         4.1302e-02      3
+     2         7.4568e-04      2
+
+  Timestep=    0   No. Outers=    3    No. Inners=  196
+
+   Population: 0.00
+
+ Timestep 1
+   Outer      Difference      Inners
+     0         7.2102e-02      3
+     1         2.9102e-02      2
+     2         4.3693e-04      2
+
+  Timestep=    1   No. Outers=    3    No. Inners=  195
+
+   Population: 0.00
+
+ Timestep 2
+   Outer      Difference      Inners
+     0         6.8614e-02      3
+     1         1.9153e-02      2
+     2         2.3149e-04      2
+
+  Timestep=    2   No. Outers=    3    No. Inners=  195
+
+   Population: 0.00
+
+ Timestep 3
+   Outer      Difference      Inners
+     0         6.7457e-02      3
+     1         1.6605e-02      2
+     2         1.8773e-04      2
+
+  Timestep=    3   No. Outers=    3    No. Inners=  195
+
+   Population: 0.00
+
+ Timestep 4
+   Outer      Difference      Inners
+     0         6.6755e-02      3
+     1         1.6078e-02      2
+     2         1.9246e-04      2
+
+  Timestep=    4   No. Outers=    3    No. Inners=  195
+
+   Population: 0.00
+
+ Timestep 5
+   Outer      Difference      Inners
+     0         6.4709e-02      3
+     1         1.5481e-02      2
+     2         1.8692e-04      2
+
+  Timestep=    5   No. Outers=    3    No. Inners=  195
+
+   Population: 0.00
+
+ Timestep 6
+   Outer      Difference      Inners
+     0         6.4372e-02      3
+     1         1.6188e-02      2
+     2         1.9009e-04      2
+
+  Timestep=    6   No. Outers=    3    No. Inners=  195
+
+   Population: 0.00
+
+ Timestep 7
+   Outer      Difference      Inners
+     0         6.6715e-02      3
+     1         1.5658e-02      2
+     2         1.8843e-04      2
+
+  Timestep=    7   No. Outers=    3    No. Inners=  195
+
+   Population: 0.00
+
+ Timestep 8
+   Outer      Difference      Inners
+     0         6.7384e-02      3
+     1         1.5943e-02      2
+     2         1.8962e-04      2
+
+  Timestep=    8   No. Outers=    3    No. Inners=  195
+
+   Population: 0.00
+
+ Timestep 9
+   Outer      Difference      Inners
+     0         6.7405e-02      3
+     1         1.5835e-02      2
+     2         1.8873e-04      2
+
+  Timestep=    9   No. Outers=    3    No. Inners=  194
+
+   Population: 0.00
+
+
+********************************************************
+  Timing Report
+********************************************************
+ Setup                           0.499s
+ Outer source                    0.000s
+ Outer parameters                0.000s
+ Inner source                    0.000s
+ Sweeps                         22.817s
+   MPI Send time                 0.000s
+   MPI Recv time                 2.212s
+   PCIe transfer time            0.000s
+   Compute time                 20.605s
+ Scalar flux reductions          0.000s
+ Convergence checking            0.015s
+ Other                           4.064s
+ Total simulation               26.896s
+
+ Grind time                     48.169ns
+********************************************************
+
+snap_input:
+! Input from namelist
+&invar
+   nthreads=1
+   nnested=1
+   npex=1
+   npey=1
+   npez=1
+   ndimen=3
+   nx=8
+   lx=0.1
+   ny=8
+   ly=0.1
+   nz=8
+   lz=0.1
+   ichunk=8
+   nmom=2
+   nang=64
+   ng=30
+   mat_opt=0
+   src_opt=0
+   timedep=1
+   it_det=0
+   tf=0.1
+   nsteps=10
+   iitm=5
+   oitm=10
+   epsi=1.E-4
+   fluxp=0
+   scatp=0
+   fixup=1
+   angcpy=2
+/
+

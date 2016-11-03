@@ -29,5 +29,26 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
 
-# OpenMPApps
-OpenMP GPU Accelerated Applications 
+/** \file
+* \brief Instantiate hcc plane array objects
+*/
+
+/** \brief 
+This file included only once in main.
+It instantiates array plane objects for the life of the program.
+*/
+    buffers.planes = (struct cell_id**) malloc(sizeof(struct cell_id *)*num_planes);
+
+    for (unsigned int p = 0; p < num_planes; p++)
+    {
+        struct cell_id * vcell_ids = (struct cell_id *) malloc(sizeof(struct cell_id )*planes[p].num_cells);
+
+        for (int j=0;j<planes[p].num_cells;j++)
+        {
+           vcell_ids[j].i = planes[p].cell_ids[j].i;
+           vcell_ids[j].j = planes[p].cell_ids[j].j;
+           vcell_ids[j].k = planes[p].cell_ids[j].k;
+        }
+        buffers.planes[p] = vcell_ids;
+#pragma omp target enter data map(to: vcell_ids[:planes[p].num_cells])
+    }

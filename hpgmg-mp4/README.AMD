@@ -1,0 +1,83 @@
+/*******************************************************************************
+Copyright (c) 2016 Advanced Micro Devices, Inc.
+
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors
+may be used to endorse or promote products derived from this software without
+specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*******************************************************************************/
+
+
+
+
+Files changed from version 0.3:
+base.mk
+finite-volume/source/defines.h
+finite-volume/source/hpgmg-fv.c
+finite-volume/source/level.c
+finite-volume/source/operators.fv4.c
+finite-volume/source/operators/gsrb.c
+finite-volume/source/operators/jacobi.c
+finite-volume/source/operators/misc.c
+finite-volume/source/operators/rebuild.c
+Makefile
+
+
+Changes:
+- Needed to change base.mk to remove C99 flags and remove -lm, so we can use the C++ std math library instead. This was a workaround for the compiler.
+- Added GPU offloading on GSRB and Jacobi smoother.
+- Added GPU offloading on most other "#pragma omp" functions.
+- Set GPU offloading threshold, so small problems are not run on GPU.
+
+
+Issues:
+- A naive GPU threshold of 16 blocks was used for the hardware used to perform these tests. This should be larger to better accommodate GPU performance, but GPU metrics could not be easily captured with a smaller threshold.
+- Absolute error is slightly larger than expected for GPU offloading with the GSRB_STRIDE2 smoother and FV4. GSRB_RB has also not been implemented due to RB tree data structure. All other *working* combinations seem to give the same error as CPU version. The difference in error for the GSRB_STRIDE2 can possibly be attributed to compiler issues, but nothing was determined at this point.
+
+
+Future Work:
+- Implement dynamic function to determine GPU offloading threshold for specific hardware
+- Reorder data structures to run optimally on GPU and CPU devices
+
+
+Instructions:
+- Verify compatible compiler is installed
+- Run the following command:
+
+./configure --no-fe --no-fv-mpi --CC=/usr/local/llvm_openmp/bin/clang++ --CFLAGS="-I/usr/include/openmpi -fopenmp=libomp -omptargets=nvptx64sm_50-linux-gnu -D__GPU__ -I/usr/local/intel_openmp_rt/lib" --LDFLAGS="-fopenmp=libomp -omptargets=nvptx64sm_50-linux-gnu -target x86_64-pc-linux-gnu" --LDLIBS="-L/usr/lib/openmpi -L/usr/local/intel_openmp_rt/lib -L/usr/local/cuda-7.0/lib64 -lcuda -lcudart -lelf -lffi -lmpi"
+
+- (Optional) change GPU settings in finite-volume/source/defines.h (Description below)
+- Run "build" make (make -j3 -C build)
+- Run build/bin/hpgmg-fv command with desired parameters (e.g. build/bin/hpgmg-fv 6 1 >& output.txt)
+
+
+GPU Offloading Options:
+Can change three variables in finite-volume/source/defines.h for different behaviors
+GPU_OFFLOAD_ENABLE (0/1) - General GPU offloading enabled. If disabled, it will disable smoother GPU Offloading regardless of GPU_ENABLE_SMOOTHER value. 
+GPU_ENABLE_SMOOTHER (0=/1) - Enable GPU offloading specifically for smoother. Requires GPU_OFFLOAD_ENABLE to be enabled.
+GPU_THRESHOLD 16 - Number of blocks to be computed that are needed before computation is offloaded onto the GPU.
+
+The GSRB_BRANCH define was also added to the defines.h file, if other options are wanted, please undefine here.
+

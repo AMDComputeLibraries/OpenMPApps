@@ -29,5 +29,29 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
 
-# OpenMPApps
-OpenMP GPU Accelerated Applications 
+
+
+
+Files changed from ANL openACC branch:
+Main.c
+CalculateXS.c
+XSbench_header.h
+GridInit.c
+XSutils.c
+Makefile
+
+
+Changes:
+- Changed verification method to run hash outside of main loop.
+- Added pragma tags to offload the main lookup function to the target accelerator.
+- Replaced floor function to work around issues reguarding the compiler Math Library issue.
+
+
+Future Work:
+- Use more advanced pigeon hole sorting techniques to take advantage of local accelerator caches.
+
+Instructions:
+- Verify compatible compiler is installed
+- Make
+- Run with desired options
+- If code verify needed, change verify variable to yes in makefile then recompile
