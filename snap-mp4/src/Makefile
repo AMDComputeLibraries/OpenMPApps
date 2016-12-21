@@ -1,15 +1,13 @@
 MP4BUILD = 1
 
-CLANG=/usr/local/llvm_openmp/bin/clang++
-
-OMPTARGET=nvptx64sm_50-linux-gnu
+OMPTARGET=nvptx64-nvidia-cuda
 CPUTARGET=x86_64-pc-linux-gnu
 
 ifdef MP4BUILD 
-CXXFLAGS = -g -O3 -fopenmp=libomp -omptargets=$(OMPTARGET) -I/usr/lib/openmpi/include -I$(LIBOMP_LIB)
-CXXLNKFLAGS = -g -fopenmp=libomp -omptargets=$(OMPTARGET)
-LFLAGS = -target nvptx64sm_50-linux-gnu
-LIBS = -L$(LIBOMP_LIB) -L$(CUDA)/lib64 -lm -lcuda -lcudart -lelf -lffi 
+CXXFLAGS = -O3 -fopenmp -fopenmp-targets=$(OMPTARGET) -I/usr/lib/openmpi/include -I$(LIBOMP_LIB) -target $(CPUTARGET)
+CXXLNKFLAGS = -fopenmp -fopenmp-targets=$(OMPTARGET) -target $(CPUTARGET)
+LFLAGS = -target $(CPUTARGET)
+LIBS = -L$(LIBOMP_LIB) -L$(CUDA)/lib64 -lm -lcuda -lcudart -lelf -lffi -lstdc++
 else
 CXXFLAGS = -g -O3 -I/usr/lib/openmpi/include 
 CXXLNKFLAGS = -g 
