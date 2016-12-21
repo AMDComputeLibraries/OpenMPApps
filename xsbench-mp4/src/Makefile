@@ -36,12 +36,12 @@ obj = $(source:.c=.o)
 LDFLAGS = -lm
 
 ifeq ($(COMPILER),mp4)
-  OMPTARGET=nvptx64sm_50-linux-gnu
+  OMPTARGET=nvptx64-nvidia-cuda
   CPUTARGET=x86_64-pc-linux-gnu
-  CFLAGS = -O3 -g -fopenmp=libomp -omptargets=$(OMPTARGET)
+  CFLAGS = -O3 -fopenmp -fopenmp-targets=$(OMPTARGET) -target $(CPUTARGET)
   CC = $(CLANG)
   CFLAGS += -D__GPU__ -I$(LIBOMP_LIB)
-  LDFLAGS = -fopenmp=libomp -omptargets=$(OMPTARGET) -target x86_64-pc-linux-gnu -L$(LIBOMP_LIB) -L$(CUDA)/lib64 -lcuda -lcudart -lelf -lffi
+  LDFLAGS = -fopenmp -fopenmp-targets=$(OMPTARGET) -target $(CPUTARGET) -L$(LIBOMP_LIB) -L$(CUDA)/lib64 -lcuda -lcudart -lelf -lffi
 endif
 
 # GNU Compiler

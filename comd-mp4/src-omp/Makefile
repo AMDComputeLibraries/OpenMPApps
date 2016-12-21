@@ -10,8 +10,7 @@ DOUBLE_PRECISION = ON
 # MPI for parallel (ON/OFF)
 DO_MPI = OFF
 
-CLANG=/usr/local/llvm_openmp/bin/clang
-OMPTARGET=nvptx64sm_30-linux-gnu,nvptx64sm_50-linux-gnu
+OMPTARGET=nvptx64-nvidia-cuda
 
 ### Set your desired C compiler and any necessary flags.  Note that CoMD
 ### uses some c99 features.  You can also set flags for optimization and
@@ -20,10 +19,10 @@ OMPTARGET=nvptx64sm_30-linux-gnu,nvptx64sm_50-linux-gnu
 ### (such as -lm for the math library) put them in C_LIB.
 #CC = mpicc
 CC = $(CLANG)
-FLAGS = -O3 -g 
-FLAGS = -O3 -g -fopenmp=libomp -omptargets=$(OMPTARGET) -target x86_64-pc-linux-gnu
+FLAGS = -O3
+FLAGS = -O3 -fopenmp -fopenmp-targets=$(OMPTARGET) -target x86_64-pc-linux-gnu
 
-CFLAGS = -O3 -g -std=c99  
+CFLAGS = -O3 -std=c99
 FLAGS += -D__GPU__ -I$(LIBOMP_LIB)
 OPTFLAGS = 
 INCLUDES = 
@@ -86,7 +85,7 @@ OBJECTS=$(SOURCES:.c=.o)
 DEFAULT: ${CoMD_EXE}
 
 %.o: %.c
-	${CC} ${CFLAGS} -c $< -o $@
+	${CC} ${CFLAGS} ${FLAGS} -c $< -o $@
 
 ljForce.o: ljForce.c
 	${CC} ${CFLAGS} $(FLAGS) -c $< -o $@

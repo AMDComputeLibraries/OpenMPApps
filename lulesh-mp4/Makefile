@@ -41,7 +41,7 @@ mpi = -DUSE_MPI=$(USE_MPI)
 endif
 
 # Tuning flags for Power 8
-CXXFLAGS = -fopenmp=libomp -O3 -omptargets=nvptx64sm_50-linux-gnu $(shared) $(mpi) $(teams) $(threads) $(gpu) -I$(LIBOMP_LIB) -target x86_64-px-linux-gnu
+CXXFLAGS = -fopenmp -O3 -fopenmp-targets=nvptx64-nvidia-cuda $(shared) $(mpi) $(teams) $(threads) $(gpu) -I$(LIBOMP_LIB) -target x86_64-pc-linux-gnu
 
 LDFLAGS = -L$(LIBOMP_LIB) -L$(CUDA)/lib64  -lcuda -lcudart -lelf -lffi -target x86_64-pc-linux-gnu
 
@@ -53,7 +53,7 @@ all: $(LULESH_EXEC)
 
 lulesh2.0: $(OBJECTS2.0)
 	@echo "Linking"
-	$(CXX) -fopenmp=libomp -omptargets=nvptx64sm_50-linux-gnu $(OBJECTS2.0) $(LDFLAGS) -lomp -lomptarget -lstdc++ -lm -o $@
+	$(CXX) -fopenmp=libomp $(CXXFLAGS) $(OBJECTS2.0) $(LDFLAGS) -lomp -lomptarget -lstdc++ -lm -o $@
 
 clean:
 	/bin/rm -f *.o *~ *.tgt* $(OBJECTS) $(LULESH_EXEC)
