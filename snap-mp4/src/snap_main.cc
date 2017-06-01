@@ -107,7 +107,7 @@ int main(int argc, char **argv)
         // Check for two files on CLI
         if (argc != 2)
         {
-            fprintf(stderr, "Usage: ./snap snap.in\n");
+            fprintf(stderr, "Usage: ./snap in\n");
             exit(EXIT_FAILURE);
         }
         read_input(argv[1], &problem);

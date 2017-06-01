@@ -62,7 +62,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <cmath>
+#include <math.h>
 //------------------------------------------------------------------------------------------------------------------------------
 #ifdef USE_MPI
 #include <mpi.h>
