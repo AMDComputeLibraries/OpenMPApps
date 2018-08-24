@@ -178,7 +178,7 @@ edit:
 	vim -p $(source) papi.c XSbench_header.h
 
 run:
-	$(SETDEBUGRUNENV) ./$(program)
+	$(SETDEBUGRUNENV) ./$(program) -s small
 
 bgqrun:
 	qsub -t 10 -n 1 -O test XSBench
