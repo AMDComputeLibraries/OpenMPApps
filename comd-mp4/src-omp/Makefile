@@ -28,16 +28,17 @@ HCC2_CPUTARGET ?= x86_64-pc-linux-gnu
 #CC = mpicc
 CC = $(HCC2)/bin/clang
 FLAGS = -O3 -target $(HCC2_CPUTARGET) -fopenmp -fopenmp-targets=$(HCC2_GPUTARGET) -Xopenmp-target=$(HCC2_GPUTARGET) -march=$(HCC2_GPU)
-ifeq (nvptx,$(findstring nvptx,$(HCC2_GPUTARGET)))
-  CUDA ?= /usr/local/cuda
-  LFLAGS += -L$(CUDA)/lib64 -lcuda -lcudart -lelf -lffi
-endif
 
 CFLAGS = -O3 -std=c99
 FLAGS += -D__GPU__
 OPTFLAGS = 
 INCLUDES = 
+C_LIB = -lm
 LFLAGS = -fopenmp -fopenmp-targets=$(HCC2_GPUTARGET) -target $(HCC2_CPUTARGET)
+ifeq (nvptx,$(findstring nvptx,$(HCC2_GPUTARGET)))
+  CUDA ?= /usr/local/cuda
+  LFLAGS += -L$(CUDA)/lib64 -lcuda -lcudart -lelf -lffi
+endif
 
 ### If you need to specify include paths, library paths, or link flags
 ### for MPI, put them here.  Put both -L and -l switches into MPI_LIB.
@@ -101,6 +102,9 @@ ljForce.o: ljForce.c
 
 ${CoMD_EXE}: ${BIN_DIR} CoMD_info.h ${OBJECTS} 
 	${CC} ${CFLAGS} $(FLAGS) -o ${CoMD_EXE} ${OBJECTS} $(LFLAGS) ${LDFLAGS}
+
+run: ${CoMD_EXE}
+	${CoMD_EXE}
 
 CoMD_info.h: Makefile
 	./generate_info_header ${CoMD_VARIANT} "$(CC)" "$(CFLAGS)" "$(LDFLAGS)"
