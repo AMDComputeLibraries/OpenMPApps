@@ -4,6 +4,15 @@
 SHELL = /bin/sh
 .SUFFIXES: .cc .o
 
+HCC2 ?= /opt/rocm/hcc2
+HCC2_GPU ?= gfx803
+HCC2_GPUTARGET = amdgcn-amd-amdhsa
+# Default is Radeon fiji/gfx803, for nvidia "export HCC2_GPU=sm_35"
+ifeq (sm_,$(findstring sm_,$(HCC2_GPU)))
+  HCC2_GPUTARGET = nvptx64-nvidia-cuda
+endif
+HCC2_CPUTARGET ?= x86_64-pc-linux-gnu
+
 LULESH_EXEC = lulesh2.0
 
 MPI_INC = /opt/local/include/openmpi
@@ -41,9 +50,14 @@ mpi = -DUSE_MPI=$(USE_MPI)
 endif
 
 # Tuning flags for Power 8
-CXXFLAGS = -fopenmp -O3 -fopenmp-targets=nvptx64-nvidia-cuda $(shared) $(mpi) $(teams) $(threads) $(gpu) -I$(LIBOMP_LIB) -target x86_64-pc-linux-gnu
-
-LDFLAGS = -L$(LIBOMP_LIB) -L$(CUDA)/lib64  -lcuda -lcudart -lelf -lffi -target x86_64-pc-linux-gnu
+CXXFLAGS = -O3 $(shared) $(mpi) $(teams) $(threads) $(gpu)
+CXXFLAGS += -target $(HCC2_CPUTARGET) -fopenmp -fopenmp-targets=$(HCC2_GPUTARGET) -Xopenmp-target=$(HCC2_GPUTARGET) -march=$(HCC2_GPU)
+CXX = $(HCC2)/bin/clang++
+LDFLAGS = -fopenmp -fopenmp-targets=$(HCC2_GPUTARGET) -target $(HCC2_CPUTARGET)
+ifeq (nvptx,$(findstring nvptx,$(HCC2_GPUTARGET)))
+   CUDA ?= /usr/local/cuda
+   LDFLAGS += -L$(CUDA)/lib64 -lcuda -lcudart -lelf -lffi
+endif
 
 .cc.o: lulesh.h
 	@echo "Building $<"
@@ -53,7 +67,7 @@ all: $(LULESH_EXEC)
 
 lulesh2.0: $(OBJECTS2.0)
 	@echo "Linking"
-	$(CXX) -fopenmp=libomp $(CXXFLAGS) $(OBJECTS2.0) $(LDFLAGS) -lomp -lomptarget -lstdc++ -lm -o $@
+	$(CXX) $(CXXFLAGS) $(OBJECTS2.0) -o $@ $(LDFLAGS)
 
 clean:
 	/bin/rm -f *.o *~ *.tgt* $(OBJECTS) $(LULESH_EXEC)

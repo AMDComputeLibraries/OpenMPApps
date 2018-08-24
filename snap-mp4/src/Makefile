@@ -1,13 +1,25 @@
 MP4BUILD = 1
 
-OMPTARGET=nvptx64-nvidia-cuda
-CPUTARGET=x86_64-pc-linux-gnu
+HCC2 ?= /opt/rocm/hcc2
+HCC2_GPU ?= gfx803
+HCC2_GPUTARGET = amdgcn-amd-amdhsa
+# Default is Radeon fiji/gfx803, for nvidia "export HCC2_GPU=sm_35"
+ifeq (sm_,$(findstring sm_,$(HCC2_GPU)))
+  HCC2_GPUTARGET = nvptx64-nvidia-cuda
+endif
+HCC2_CPUTARGET ?= x86_64-pc-linux-gnu
 
 ifdef MP4BUILD 
-CXXFLAGS = -O3 -fopenmp -fopenmp-targets=$(OMPTARGET) -I/usr/lib/openmpi/include -I$(LIBOMP_LIB) -target $(CPUTARGET)
-CXXLNKFLAGS = -fopenmp -fopenmp-targets=$(OMPTARGET) -target $(CPUTARGET)
-LFLAGS = -target $(CPUTARGET)
-LIBS = -L$(LIBOMP_LIB) -L$(CUDA)/lib64 -lm -lcuda -lcudart -lelf -lffi -lstdc++
+CLANG=$(HCC2)/bin/clang++
+CXXFLAGS = -g -O3 -I/usr/lib/openmpi/include -target $(HCC2_CPUTARGET) -fopenmp -fopenmp-targets=$(HCC2_GPUTARGET) -Xopenmp-target=$(HCC2_GPUTARGET) -march=$(HCC2_GPU)
+CXX = $(HCC2)/bin/clang++
+LFLAGS = -fopenmp -fopenmp-targets=$(HCC2_GPUTARGET) -target $(HCC2_CPUTARGET)
+ifeq (nvptx,$(findstring nvptx,$(HCC2_GPUTARGET)))
+   CUDA ?= /usr/local/cuda
+   LFLAGS += -L$(CUDA)/lib64 -lcuda -lcudart -lelf -lffi
+endif
+CXXLNKFLAGS = -g 
+
 else
 CXXFLAGS = -g -O3 -I/usr/lib/openmpi/include 
 CXXLNKFLAGS = -g 
@@ -38,7 +50,11 @@ objs:
 	mkdir objs
 
 snap: $(OBJS)
-	$(CLANG) $(CXXLNKFLAGS) $^ -o $@ $(LIBS) $(MPILIBS)
+	@echo
+	@echo linking snap
+	@echo
+	$(CLANG) $(CXXFLAGS) $(OBJS) $(CXXLNKFLAGS) $(MPILIBS) -o $@ $(LIBS) $(LFLAGS)
+#$(CLANG) $(CXXLNKFLAGS) -o $@ $(MPILIBS) $(LIBS) $(OBJS) $(TFLAGS)
 
 objs/snap_main.o: snap_main.cc mp4_planes.h
 	$(CLANG) $(CXXFLAGS) -c snap_main.cc -o $@

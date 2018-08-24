@@ -10,7 +10,15 @@ DOUBLE_PRECISION = ON
 # MPI for parallel (ON/OFF)
 DO_MPI = OFF
 
-OMPTARGET=nvptx64-nvidia-cuda
+HCC2 ?= /opt/rocm/hcc2
+HCC2_GPU ?= gfx803
+HCC2_GPUTARGET = amdgcn-amd-amdhsa
+# Default is Radeon fiji/gfx803, for nvidia "export HCC2_GPU=sm_35"
+ifeq (sm_,$(findstring sm_,$(HCC2_GPU)))
+  HCC2_GPUTARGET = nvptx64-nvidia-cuda
+endif
+HCC2_CPUTARGET ?= x86_64-pc-linux-gnu
+
 
 ### Set your desired C compiler and any necessary flags.  Note that CoMD
 ### uses some c99 features.  You can also set flags for optimization and
@@ -18,17 +26,18 @@ OMPTARGET=nvptx64-nvidia-cuda
 ### own.  If you need any -L or -l switches to get C standard libraries
 ### (such as -lm for the math library) put them in C_LIB.
 #CC = mpicc
-CC = $(CLANG)
-FLAGS = -O3
-FLAGS = -O3 -fopenmp -fopenmp-targets=$(OMPTARGET) -target x86_64-pc-linux-gnu
+CC = $(HCC2)/bin/clang
+FLAGS = -O3 -target $(HCC2_CPUTARGET) -fopenmp -fopenmp-targets=$(HCC2_GPUTARGET) -Xopenmp-target=$(HCC2_GPUTARGET) -march=$(HCC2_GPU)
+ifeq (nvptx,$(findstring nvptx,$(HCC2_GPUTARGET)))
+  CUDA ?= /usr/local/cuda
+  LFLAGS += -L$(CUDA)/lib64 -lcuda -lcudart -lelf -lffi
+endif
 
 CFLAGS = -O3 -std=c99
-FLAGS += -D__GPU__ -I$(LIBOMP_LIB)
+FLAGS += -D__GPU__
 OPTFLAGS = 
 INCLUDES = 
-C_LIB = -lm
-LFLAGS = -L$(LIBOMP_LIB) -L$(CUDA)/lib64  -lcuda -lcudart -lelf -lffi -target x86_64-pc-linux-gnu
-
+LFLAGS = -fopenmp -fopenmp-targets=$(HCC2_GPUTARGET) -target $(HCC2_CPUTARGET)
 
 ### If you need to specify include paths, library paths, or link flags
 ### for MPI, put them here.  Put both -L and -l switches into MPI_LIB.
@@ -114,7 +123,7 @@ distclean: clean
 depend:
 	@echo "Rebuilding dependencies..."
 	@$(MAKE) CoMD_info.h
-	@makedepend -f .depend -Y. --$(CFLAGS)-- $(SOURCES) 2> /dev/null
+	@makedepend -f .depend -Y. --$(CFLAGS)-- $(SOURCES) 2> /dev/null ; true
 
 
 -include .depend

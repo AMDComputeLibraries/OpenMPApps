@@ -2,9 +2,9 @@
 # User Options
 #===============================================================================
 
-COMPILER    = mp4
+COMPILER    ?= hcc2
 OPTIMIZE    = no
-DEBUG       = no
+DEBUG       ?= no
 PROFILE     = no
 MPI         = no
 VEC_INFO    = no
@@ -44,6 +44,24 @@ ifeq ($(COMPILER),mp4)
   LDFLAGS = -fopenmp -fopenmp-targets=$(OMPTARGET) -target $(CPUTARGET) -L$(LIBOMP_LIB) -L$(CUDA)/lib64 -lcuda -lcudart -lelf -lffi
 endif
 
+# Default is Radeon fiji/gfx803, for nvidia "export HCC2_GPU=sm_35"
+ifeq ($(COMPILER),hcc2)
+  HCC2 ?= /opt/rocm/hcc2
+  HCC2_GPU ?= gfx803
+  HCC2_GPUTARGET = amdgcn-amd-amdhsa
+  ifeq (sm_,$(findstring sm_,$(HCC2_GPU)))
+    HCC2_GPUTARGET = nvptx64-nvidia-cuda
+  endif
+  HCC2_CPUTARGET ?= x86_64-pc-linux-gnu
+  CFLAGS = -O3 -target $(HCC2_CPUTARGET) -fopenmp -fopenmp-targets=$(HCC2_GPUTARGET) -Xopenmp-target=$(HCC2_GPUTARGET) -march=$(HCC2_GPU) -D__GPU__
+  CC = $(HCC2)/bin/clang
+  LDFLAGS = -fopenmp -fopenmp-targets=$(HCC2_GPUTARGET) -target $(HCC2_CPUTARGET) -lm
+  ifeq (nvptx,$(findstring nvptx,$(HCC2_GPUTARGET)))
+    CUDA ?= /usr/local/cuda
+    LDFLAGS += -L$(CUDA)/lib64 -lcuda -lcudart -lelf -lffi
+  endif
+endif
+
 # GNU Compiler
 ifeq ($(COMPILER),gnu)
   CC = gcc
@@ -80,8 +98,23 @@ endif
 
 # Debug Flags
 ifeq ($(DEBUG),yes)
+
+ifeq ($(COMPILER),hcc2)
+  SETDEBUGLIB = LIBRARY_PATH=$(HCC2)/lib-debug
+  SETDEBUGRUNENV = LIBOMPTARGET_DEBUG=1
+#  once yiou build with the debug libs you habve lots of switches you can turn on  
+#  with these environment variablse
+# LIBOMPTARGET_DEBUG=1
+# LIBOMPTARGET_DEVICE_RTL_DEBUG=-1
+# ATMI_DEBUG=1
+else
   CFLAGS += -g
   LDFLAGS  += -g
+endif
+
+else
+  SETDEBUGLIB = 
+  SETDEBUGRUNENV =
 endif
 
 # Profiling Flags
@@ -133,7 +166,7 @@ endif
 #===============================================================================
 
 $(program): $(obj) XSbench_header.h
-	$(CC) $(CFLAGS) $(obj) -o $@ $(LDFLAGS)
+	$(SETDEBUGLIB) $(CC) $(CFLAGS) $(obj) -o $@ $(LDFLAGS)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -145,7 +178,7 @@ edit:
 	vim -p $(source) papi.c XSbench_header.h
 
 run:
-	./$(program)
+	$(SETDEBUGRUNENV) ./$(program)
 
 bgqrun:
 	qsub -t 10 -n 1 -O test XSBench
