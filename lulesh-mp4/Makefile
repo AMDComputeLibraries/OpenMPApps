@@ -69,6 +69,10 @@ lulesh2.0: $(OBJECTS2.0)
 	@echo "Linking"
 	$(CXX) $(CXXFLAGS) $(OBJECTS2.0) -o $@ $(LDFLAGS)
 
+run:	lulesh2.0
+	@echo "Running lulesh2.0"
+	./lulesh2.0
+
 clean:
 	/bin/rm -f *.o *~ *.tgt* $(OBJECTS) $(LULESH_EXEC)
 	/bin/rm -rf *.dSYM
