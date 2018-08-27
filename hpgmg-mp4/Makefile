@@ -12,10 +12,16 @@ ifeq (nvptx,$(findstring nvptx,$(HCC2_GPUTARGET)))
   CUDA_LIBS=-L$(CUDA)/lib64 -lcuda -lcudart -lelf -lffi
 endif
 
-all :
-	./configure --arch=$(HPGMG_ARCH) --no-fe --no-fv-mpi --CC=$(HCC2)/bin/clang --CFLAGS="-O3 -target $(HCC2_CPUTARGET) -fopenmp -fopenmp-targets=$(HCC2_GPUTARGET) -Xopenmp-target=$(HCC2_GPUTARGET) -march=$(HCC2_GPU)" --LDFLAGS="-fopenmp -fopenmp-targets=$(HCC2_GPUTARGET) -target $(HCC2_CPUTARGET)" --LDLIBS="$(CUDA_LIBS)"
+all: build
+
+
+hpgmgconf.pyc:
+	@echo "Running config for directory $(HPGMG_ARCH).  "
+	./configure --arch=$(HPGMG_ARCH) --no-fe --no-fv-mpi --CC=$(HCC2)/bin/clang --CFLAGS="-O3 -target $(HCC2_CPUTARGET) -fopenmp -fopenmp-targets=$(HCC2_GPUTARGET) -Xopenmp-target=$(HCC2_GPUTARGET) -march=$(HCC2_GPU)" --LDFLAGS="-lm -fopenmp -fopenmp-targets=$(HCC2_GPUTARGET) -target $(HCC2_CPUTARGET)" --LDLIBS="$(CUDA_LIBS)"
+
+build:	hpgmgconf.pyc
 	$(MAKE) -C $(HPGMG_ARCH)
-	@echo "Build complete in $(HPGMG_ARCH).  Use make -C $(HPGMG_ARCH) test to test."
+	@echo "Build complete in $(HPGMG_ARCH).  Use make run to test"
 
 run:
 	./$(HPGMG_ARCH)/bin/hpgmg-fv 4 128
@@ -26,6 +32,6 @@ test : all
 	$(MAKE) -C $(HPGMG_ARCH) test
 
 clean :
-	$(MAKE) -C $(HPGMG_ARCH) clean
+	$(MAKE) -C $(HPGMG_ARCH) clean ; rm -rf build ; rm hpgmgconf.pyc
 
 .PHONY: all test clean
