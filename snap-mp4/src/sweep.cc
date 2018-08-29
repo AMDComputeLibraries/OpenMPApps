@@ -149,14 +149,25 @@ void sweep_plane(
                         map(tofrom: flux_i[:ng*nang*ny*nz], \
                             flux_j[:ng*nang*nx*nz], \
                             flux_k[:ng*nang*nx*ny])
+
 #pragma omp target teams distribute num_teams(num_cells) thread_limit(ng*nang)
     for (int cidx = 0; cidx < num_cells; cidx++)
     {
-#pragma omp parallel for  collapse(2)
+#ifndef NO_COLLAPSE
+#pragma omp parallel for collapse(2)
        for(int g = 0; g<ng; g++)
        {
           for(int a = 0; a<nang; a++)
           {
+#else
+// The collapse clause above works fine.  This just shows how one could avoid
+// the collapse clause by manually collapsing the above two loops.
+#pragma omp parallel for
+       for (int tid=0; tid<(ng*nang); tid++)
+       {
+           int g = tid / nang ;
+           int a = tid % nang ;
+#endif
     // Read cell index from plane buffer
     const size_t i = (istep > 0) ? plane[cidx].i         : nx - plane[cidx].i         - 1;
     const size_t j = (jstep > 0) ? plane[cidx].j         : ny - plane[cidx].j         - 1;
@@ -258,9 +269,14 @@ void sweep_plane(
     flux_j(a,g,i,k) = tmp_flux_j * zeros[1];
     flux_k(a,g,i,j) = tmp_flux_k * zeros[2];
     angular_flux_out(a,g,i,j,k) = psi * zeros[3];
-          }
-       }
-    }
+#ifdef NO_COLLAPSE
+        } // end of for each tid
+#else
+// end of loops for collapse clause
+            } // end of for each a
+        } // end of for each g
+#endif
+    }  // end of for each cidx
 
 }
 
