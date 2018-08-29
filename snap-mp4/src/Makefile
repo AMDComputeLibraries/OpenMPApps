@@ -10,6 +10,7 @@ ifeq (sm_,$(findstring sm_,$(HCC2_GPU)))
   HCC2_GPUTARGET = nvptx64-nvidia-cuda
 endif
 HCC2_CPUTARGET ?= x86_64-pc-linux-gnu
+DEBUG ?= no
 
 ifdef MP4BUILD 
 CLANG=$(HCC2)/bin/clang++
@@ -32,6 +33,26 @@ endif
 
 MPILIBS = -L/usr/lib/openmpi/lib -lmpi
 
+ifeq ($(DEBUG),no)
+  SETDEBUGLIB =
+  SETDEBUGRUNENV =
+else
+# if DEBUG != no, build with the debug libraries which are slow.
+  SETDEBUGLIB = LIBRARY_PATH=$(HCC2)/lib-debug
+# Once you build with debug libs, you have different levels of debug
+# by setting these environment variables.
+# LIBOMPTARGET_DEBUG: Host device runtime debug messages
+  SETDEBUGRUNENV = LIBOMPTARGET_DEBUG=1
+# LIBOMPTARGET_DEVICE_RTL_DEBUG: Device runtime debug messages.
+#SETDEBUGRUNENV = LIBOMPTARGET_DEVICE_RTL_DEBUG=-1
+# ATMI_DEBUG: Print ATMI debug messages
+#SETDEBUGRUNENV = ATMI_DEBUG=1
+endif
+
+# NOTE: You do NOT need debug libs to turn kernel tracing on.
+# Set LIBOMPTARGET_KERNEL_DEBUG anytime to get kernel launch trace.
+# Uncomment next line to activate kernel launch trace in this makefile.
+#SETDEBUGRUNENV += LIBOMPTARGET_KERNEL_DEBUG=1
 
 SRCS = 	snap_main.cc \
 	input.cc \
@@ -56,10 +77,10 @@ snap: $(OBJS)
 	@echo
 	@echo linking snap
 	@echo
-	$(CLANG) $(CXXFLAGS) $(OBJS) $(CXXLNKFLAGS) $(MPILIBS) -o $@ $(LIBS) $(LFLAGS)
+	$(SETDEBUGLIB) $(CLANG) $(CXXFLAGS) $(OBJS) $(CXXLNKFLAGS) $(MPILIBS) -o $@ $(LIBS) $(LFLAGS)
 
 run: snap
-	./snap snap_input
+	$(SETDEBUGRUNENV) ./snap snap_input
 #$(CLANG) $(CXXLNKFLAGS) -o $@ $(MPILIBS) $(LIBS) $(OBJS) $(TFLAGS)
 
 objs/snap_main.o: snap_main.cc mp4_planes.h
