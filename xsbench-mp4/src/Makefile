@@ -105,25 +105,31 @@ ifeq ($(MACHINE),bluegene)
 endif
 
 # Debug Flags
-ifneq ($(word 1,$(DEBUG_LEVEL)),0)
+ifneq ($(DEBUG_LEVEL),0)
 
 ifeq ($(COMPILER),hcc2)
   SETDEBUGLIB = LIBRARY_PATH=$(HCC2)/lib-debug
+# Once you build with debug libs, you have different levels of debug
+# by setting these environment variables.
+# LIBOMPTARGET_DEBUG: Host device runtime debug messages
   SETDEBUGRUNENV = LIBOMPTARGET_DEBUG=1
-#  once yiou build with the debug libs you habve lots of switches you can turn on  
-#  with these environment variablse
-# LIBOMPTARGET_DEBUG=1
-# LIBOMPTARGET_DEVICE_RTL_DEBUG=-1
-# ATMI_DEBUG=1
+# LIBOMPTARGET_DEVICE_RTL_DEBUG: Device runtime debug messages.
+#SETDEBUGRUNENV = LIBOMPTARGET_DEVICE_RTL_DEBUG=-1
+# ATMI_DEBUG: Print ATMI debug messages
+#SETDEBUGRUNENV = ATMI_DEBUG=1
 else
   CFLAGS += -g
   LDFLAGS  += -g
 endif
 
 else
-  SETDEBUGLIB = 
+  SETDEBUGLIB =
   SETDEBUGRUNENV =
 endif
+# NOTE: You do NOT need debug libs to turn kernel tracing on.
+# Set LIBOMPTARGET_KERNEL_DEBUG anytime to get kernel launch trace.
+# Uncomment next line to activate kernel launch trace in this makefile.
+#SETDEBUGRUNENV += LIBOMPTARGET_KERNEL_DEBUG=1
 
 # Profiling Flags
 ifeq ($(PROFILE),yes)
