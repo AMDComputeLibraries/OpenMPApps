@@ -4,13 +4,21 @@
 
 COMPILER    ?= hcc2
 OPTIMIZE    = no
-DEBUG_LEVEL ?= 0
 PROFILE     = no
 MPI         = no
 VEC_INFO    = no
 VERIFY      = no
 BINARY_DUMP = no
 BINARY_READ = no
+
+ifeq ($(DEBUG),no)
+  DEBUG_LEVEL = 0
+else
+ifeq ($(DEBUG),yes)
+  DEBUG_LEVEL ?= 1
+endif
+endif
+DEBUG_LEVEL ?= 0
 
 #===============================================================================
 # Program name & source code list
