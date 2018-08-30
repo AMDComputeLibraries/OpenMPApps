@@ -18,7 +18,7 @@ ifeq (sm_,$(findstring sm_,$(HCC2_GPU)))
   HCC2_GPUTARGET = nvptx64-nvidia-cuda
 endif
 HCC2_CPUTARGET ?= x86_64-pc-linux-gnu
-
+DEBUG_LEVEL ?= 0
 
 ### Set your desired C compiler and any necessary flags.  Note that CoMD
 ### uses some c99 features.  You can also set flags for optimization and
@@ -51,6 +51,26 @@ OTHER_LIB =
 OTHER_INCLUDE =
 
 
+ifeq ($(DEBUG_LEVEL),0)
+  SETDEBUGLIB =
+  SETDEBUGRUNENV =
+else
+# if DEBUG_LEVEL != 0, build with the debug libraries which are slow.
+  SETDEBUGLIB = LIBRARY_PATH=$(HCC2)/lib-debug
+# Once you build with debug libs, you have different levels of debug
+# by setting these environment variables.
+# LIBOMPTARGET_DEBUG: Host device runtime debug messages
+  SETDEBUGRUNENV = LIBOMPTARGET_DEBUG=1
+# LIBOMPTARGET_DEVICE_RTL_DEBUG: Device runtime debug messages.
+#SETDEBUGRUNENV = LIBOMPTARGET_DEVICE_RTL_DEBUG=-1
+# ATMI_DEBUG: Print ATMI debug messages
+#SETDEBUGRUNENV = ATMI_DEBUG=1
+endif
+
+# NOTE: You do NOT need debug libs to turn kernel tracing on.
+# Set LIBOMPTARGET_KERNEL_DEBUG anytime to get kernel launch trace.
+# Uncomment next line to activate kernel launch trace in this makefile.
+#SETDEBUGRUNENV += LIBOMPTARGET_KERNEL_DEBUG=1
 
 
 #########################################
@@ -101,10 +121,10 @@ ljForce.o: ljForce.c
 	${CC} ${CFLAGS} $(FLAGS) -c $< -o $@
 
 ${CoMD_EXE}: ${BIN_DIR} CoMD_info.h ${OBJECTS} 
-	${CC} ${CFLAGS} $(FLAGS) -o ${CoMD_EXE} ${OBJECTS} $(LFLAGS) ${LDFLAGS}
+	$(SETDEBUGLIB) ${CC} ${CFLAGS} $(FLAGS) -o ${CoMD_EXE} ${OBJECTS} $(LFLAGS) ${LDFLAGS}
 
 run: ${CoMD_EXE}
-	${CoMD_EXE}
+	$(SETDEBUGRUNENV) ${CoMD_EXE}
 
 CoMD_info.h: Makefile
 	./generate_info_header ${CoMD_VARIANT} "$(CC)" "$(CFLAGS)" "$(LDFLAGS)"
