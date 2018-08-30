@@ -4,7 +4,7 @@
 
 COMPILER    ?= hcc2
 OPTIMIZE    = no
-DEBUG       ?= no
+DEBUG_LEVEL ?= 0
 PROFILE     = no
 MPI         = no
 VEC_INFO    = no
@@ -97,7 +97,7 @@ ifeq ($(MACHINE),bluegene)
 endif
 
 # Debug Flags
-ifeq ($(DEBUG),yes)
+ifneq ($(word 1,$(DEBUG_LEVEL)),0)
 
 ifeq ($(COMPILER),hcc2)
   SETDEBUGLIB = LIBRARY_PATH=$(HCC2)/lib-debug
