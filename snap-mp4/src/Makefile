@@ -10,7 +10,7 @@ ifeq (sm_,$(findstring sm_,$(HCC2_GPU)))
   HCC2_GPUTARGET = nvptx64-nvidia-cuda
 endif
 HCC2_CPUTARGET ?= x86_64-pc-linux-gnu
-DEBUG ?= no
+DEBUG_LEVEL ?= 0
 
 ifdef MP4BUILD 
 CLANG=$(HCC2)/bin/clang++
@@ -33,11 +33,11 @@ endif
 
 MPILIBS = -L/usr/lib/openmpi/lib -lmpi
 
-ifeq ($(DEBUG),no)
+ifeq ($(DEBUG_LEVEL),0)
   SETDEBUGLIB =
   SETDEBUGRUNENV =
 else
-# if DEBUG != no, build with the debug libraries which are slow.
+# if DEBUG_LEVEL != 0, build with the debug libraries which are slow.
   SETDEBUGLIB = LIBRARY_PATH=$(HCC2)/lib-debug
 # Once you build with debug libs, you have different levels of debug
 # by setting these environment variables.
