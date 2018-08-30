@@ -12,6 +12,7 @@ ifeq (sm_,$(findstring sm_,$(HCC2_GPU)))
   HCC2_GPUTARGET = nvptx64-nvidia-cuda
 endif
 HCC2_CPUTARGET ?= x86_64-pc-linux-gnu
+DEBUG_LEVEL ?= 0
 
 LULESH_EXEC = lulesh2.0
 
@@ -59,6 +60,27 @@ ifeq (nvptx,$(findstring nvptx,$(HCC2_GPUTARGET)))
    LDFLAGS += -L$(CUDA)/lib64 -lcuda -lcudart -lelf -lffi
 endif
 
+ifeq ($(DEBUG_LEVEL),0)
+  SETDEBUGLIB =
+  SETDEBUGRUNENV =
+else
+# if DEBUG_LEVEL != 0, build with the debug libraries which are slow.
+  SETDEBUGLIB = LIBRARY_PATH=$(HCC2)/lib-debug
+# Once you build with debug libs, you have different levels of debug
+# by setting these environment variables.
+# LIBOMPTARGET_DEBUG: Host device runtime debug messages
+  SETDEBUGRUNENV = LIBOMPTARGET_DEBUG=1
+# LIBOMPTARGET_DEVICE_RTL_DEBUG: Device runtime debug messages.
+#SETDEBUGRUNENV = LIBOMPTARGET_DEVICE_RTL_DEBUG=-1
+# ATMI_DEBUG: Print ATMI debug messages
+#SETDEBUGRUNENV = ATMI_DEBUG=1
+endif
+
+# NOTE: You do NOT need debug libs to turn kernel tracing on.
+# Set LIBOMPTARGET_KERNEL_DEBUG anytime to get kernel launch trace.
+# Uncomment next line to activate kernel launch trace in this makefile.
+#SETDEBUGRUNENV += LIBOMPTARGET_KERNEL_DEBUG=1
+
 .cc.o: lulesh.h
 	@echo "Building $<"
 	$(CXX) -c $(CXXFLAGS) -o $@  $<
@@ -67,11 +89,11 @@ all: $(LULESH_EXEC)
 
 lulesh2.0: $(OBJECTS2.0)
 	@echo "Linking"
-	$(CXX) $(CXXFLAGS) $(OBJECTS2.0) -o $@ $(LDFLAGS)
+	$(SETDEBUGLIB) $(CXX) $(CXXFLAGS) $(OBJECTS2.0) -o $@ $(LDFLAGS)
 
 run:	lulesh2.0
 	@echo "Running lulesh2.0"
-	./lulesh2.0
+	$(SETDEBUGRUNENV) ./lulesh2.0
 
 clean:
 	/bin/rm -f *.o *~ *.tgt* $(OBJECTS) $(LULESH_EXEC)
