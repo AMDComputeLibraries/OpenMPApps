@@ -54,7 +54,7 @@ endif
 CXXFLAGS = -O3 $(shared) $(mpi) $(teams) $(threads) $(gpu)
 CXXFLAGS += -target $(HCC2_CPUTARGET) -fopenmp -fopenmp-targets=$(HCC2_GPUTARGET) -Xopenmp-target=$(HCC2_GPUTARGET) -march=$(HCC2_GPU)
 CXX = $(HCC2)/bin/clang++
-LDFLAGS = -fopenmp -fopenmp-targets=$(HCC2_GPUTARGET) -target $(HCC2_CPUTARGET)
+LDFLAGS = -fopenmp -fopenmp-targets=$(HCC2_GPUTARGET) -target $(HCC2_CPUTARGET) -lm
 ifeq (nvptx,$(findstring nvptx,$(HCC2_GPUTARGET)))
    CUDA ?= /usr/local/cuda
    LDFLAGS += -L$(CUDA)/lib64 -lcuda -lcudart -lelf -lffi
