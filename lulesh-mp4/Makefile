@@ -51,7 +51,7 @@ mpi = -DUSE_MPI=$(USE_MPI)
 endif
 
 # Tuning flags for Power 8
-CXXFLAGS = -O3 $(shared) $(mpi) $(teams) $(threads) $(gpu)
+CXXFLAGS = -O3 $(shared) $(mpi) $(teams) $(threads) $(gpu) -lm -Wno-unused-command-line-argument
 CXXFLAGS += -target $(HCC2_CPUTARGET) -fopenmp -fopenmp-targets=$(HCC2_GPUTARGET) -Xopenmp-target=$(HCC2_GPUTARGET) -march=$(HCC2_GPU)
 CXX = $(HCC2)/bin/clang++
 LDFLAGS = -fopenmp -fopenmp-targets=$(HCC2_GPUTARGET) -target $(HCC2_CPUTARGET) -lm
