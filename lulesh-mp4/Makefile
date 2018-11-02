@@ -77,9 +77,9 @@ else
 endif
 
 # NOTE: You do NOT need debug libs to turn kernel tracing on.
-# Set LIBOMPTARGET_KERNEL_DEBUG anytime to get kernel launch trace.
+# Set LIBOMPTARGET_KERNEL_TRACE anytime to get kernel launch trace.
 # Uncomment next line to activate kernel launch trace in this makefile.
-#SETDEBUGRUNENV += LIBOMPTARGET_KERNEL_DEBUG=1
+#SETDEBUGRUNENV += LIBOMPTARGET_KERNEL_TRACE=1
 
 .cc.o: lulesh.h
 	@echo "Building $<"
