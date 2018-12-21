@@ -15,7 +15,12 @@ DEBUG_LEVEL ?= 0
 ifdef MP4BUILD 
 CLANG=$(HCC2)/bin/clang++
 
-CXXFLAGS = $(host_debug_flag) -O3 -I/usr/lib/openmpi/include -target $(HCC2_CPUTARGET) -fopenmp -fopenmp-targets=$(HCC2_GPUTARGET) -Xopenmp-target=$(HCC2_GPUTARGET) -march=$(HCC2_GPU)
+OMPIDIR = /usr/lib/openmpi
+ifeq "$(wildcard $(OMPIDIR) )" ""
+  OMPIDIR = /usr/lib/x86_64-linux-gnu/openmpi
+endif
+
+CXXFLAGS = $(host_debug_flag) -O3 -I${OMPIDIR}/include -target $(HCC2_CPUTARGET) -fopenmp -fopenmp-targets=$(HCC2_GPUTARGET) -Xopenmp-target=$(HCC2_GPUTARGET) -march=$(HCC2_GPU)
 CXX = $(HCC2)/bin/clang++
 LFLAGS = -fopenmp -fopenmp-targets=$(HCC2_GPUTARGET) -target $(HCC2_CPUTARGET)
 ifeq (nvptx,$(findstring nvptx,$(HCC2_GPUTARGET)))
@@ -25,13 +30,13 @@ endif
 CXXLNKFLAGS = $(host_debug_flag)
 
 else
-CXXFLAGS = $(host_debug_flag) -O3 -I/usr/lib/openmpi/include 
+CXXFLAGS = $(host_debug_flag) -O3 -I${OMPIDIR/include
 CXXLNKFLAGS = $(host_debug_flag)
 LFLAGS = 
 LIBS = -lm 
 endif
 
-MPILIBS = -L/usr/lib/openmpi/lib -lmpi
+MPILIBS = -L${OMPIDIR}/lib -lmpi
 
 ifeq ($(DEBUG_LEVEL),0)
   SETDEBUGLIB =
