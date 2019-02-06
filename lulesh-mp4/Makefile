@@ -4,14 +4,29 @@
 SHELL = /bin/sh
 .SUFFIXES: .cc .o
 
-HCC2 ?= /opt/rocm/hcc2
-HCC2_GPU ?= gfx803
-HCC2_GPUTARGET = amdgcn-amd-amdhsa
-# Default is Radeon fiji/gfx803, for nvidia "export HCC2_GPU=sm_35"
-ifeq (sm_,$(findstring sm_,$(HCC2_GPU)))
-  HCC2_GPUTARGET = nvptx64-nvidia-cuda
+# --- Standard Makefile check for AOMP installation ---
+ifeq ("$(wildcard $(AOMP))","")
+  ifneq ($(AOMP),)
+    $(warning AOMP not found at $(AOMP))
+  endif
+  AOMP = $(HOME)/rocm/aomp
+  ifeq ("$(wildcard $(AOMP))","")
+    $(warning AOMP not found at $(AOMP))
+    AOMP = /opt/rocm/aomp
+    ifeq ("$(wildcard $(AOMP))","")
+      $(warning AOMP not found at $(AOMP))
+      $(error Please install AOMP or correctly set env-var AOMP)
+    endif
+  endif
 endif
-HCC2_CPUTARGET ?= x86_64-pc-linux-gnu
+# --- End Standard Makefile check for AOMP installation ---
+AOMP_GPU ?= gfx900
+AOMP_GPUTARGET = amdgcn-amd-amdhsa
+# Default is Radeon vega/gfx900, for nvidia "export AOMP_GPU=sm_35"
+ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
+  AOMP_GPUTARGET = nvptx64-nvidia-cuda
+endif
+AOMP_CPUTARGET ?= x86_64-pc-linux-gnu
 DEBUG_LEVEL ?= 0
 
 LULESH_EXEC = lulesh2.0
@@ -52,10 +67,10 @@ endif
 
 # Tuning flags for Power 8
 CXXFLAGS = -O3 $(shared) $(mpi) $(teams) $(threads) $(gpu) -lm -Wno-unused-command-line-argument
-CXXFLAGS += -target $(HCC2_CPUTARGET) -fopenmp -fopenmp-targets=$(HCC2_GPUTARGET) -Xopenmp-target=$(HCC2_GPUTARGET) -march=$(HCC2_GPU)
-CXX = $(HCC2)/bin/clang++
-LDFLAGS = -fopenmp -fopenmp-targets=$(HCC2_GPUTARGET) -target $(HCC2_CPUTARGET) -lm
-ifeq (nvptx,$(findstring nvptx,$(HCC2_GPUTARGET)))
+CXXFLAGS += -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU)
+CXX = $(AOMP)/bin/clang++
+LDFLAGS = -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -target $(AOMP_CPUTARGET) -lm
+ifeq (nvptx,$(findstring nvptx,$(AOMP_GPUTARGET)))
    CUDA ?= /usr/local/cuda
    LDFLAGS += -L$(CUDA)/lib64 -lcuda -lcudart -lelf -lffi
 endif
@@ -65,7 +80,7 @@ ifeq ($(DEBUG_LEVEL),0)
   SETDEBUGRUNENV =
 else
 # if DEBUG_LEVEL != 0, build with the debug libraries which are slow.
-  SETDEBUGLIB = LIBRARY_PATH=$(HCC2)/lib-debug
+  SETDEBUGLIB = LIBRARY_PATH=$(AOMP)/lib-debug
 # Once you build with debug libs, you have different levels of debug
 # by setting these environment variables.
 # LIBOMPTARGET_DEBUG: Host device runtime debug messages
