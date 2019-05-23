@@ -43,7 +43,6 @@ for directory in ./*/; do
 		if [ $base == 'hpgmg-mp4' ] || [ $base == 'lulesh-mp4' ] ; then
 			execute_makefile
 			echo " Return Code for $base: $?"  >> ../check-openmpapps.txt
-			make clean
 		
 		#COMD has a Makefile in a src folder, which is named src-omp, on second level
 		elif [ $base == 'comd-mp4' ] ; then
@@ -51,7 +50,6 @@ for directory in ./*/; do
 			cd $src_dir 
 			execute_makefile
 			echo " Return Code for $base: $?"  >> ../../check-openmpapps.txt
-			make clean
 		
 		#Tests that have Makefile in a folder named src on second level	
 		else
@@ -59,7 +57,6 @@ for directory in ./*/; do
 			cd $src_dir
 			execute_makefile
 			echo " Return Code for $base: $?"  >> ../../check-openmpapps.txt
-			make clean
 		fi
 
 	)
