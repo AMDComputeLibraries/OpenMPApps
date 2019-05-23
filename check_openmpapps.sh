@@ -27,6 +27,7 @@ execute_makefile(){
 	make
 	TT1=`date`
 	make run
+       echo " Return Code for $base: $?"  >> $1
 	TT2=`date`
 	echo $base >> $tpath/times-openmpapps.txt
 	echo Test start $TT0 >> $tpath/times-openmpapps.txt
@@ -41,22 +42,19 @@ for directory in ./*/; do
 		
 		#Apps that have Makefile on first level 
 		if [ $base == 'hpgmg-mp4' ] || [ $base == 'lulesh-mp4' ] ; then
-			execute_makefile
-			echo " Return Code for $base: $?"  >> ../check-openmpapps.txt
+			execute_makefile "../check-openmpapps.txt"
 		
 		#COMD has a Makefile in a src folder, which is named src-omp, on second level
 		elif [ $base == 'comd-mp4' ] ; then
 			src_dir='src-omp'
 			cd $src_dir 
-			execute_makefile
-			echo " Return Code for $base: $?"  >> ../../check-openmpapps.txt
+			execute_makefile "../../check-openmpapps.txt"
 		
 		#Tests that have Makefile in a folder named src on second level	
 		else
 			src_dir='src'
 			cd $src_dir
-			execute_makefile
-			echo " Return Code for $base: $?"  >> ../../check-openmpapps.txt
+			execute_makefile "../../check-openmpapps.txt"
 		fi
 
 	)
