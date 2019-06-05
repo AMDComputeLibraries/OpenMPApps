@@ -16,9 +16,13 @@ float matB[N][N];
 float matC[N][N];
 float matE[N][N];
 
-//#pragma omp requires unified_shared_memory
-
 int main(int argc, char **argv) {
+  int DevS = omp_get_num_devices();
+  char *Env = getenv("OMP_DEV_LIMIT");
+  if (Env)
+    DevS = atoi(Env);
+  fprintf(stderr, "DevS=%d\n",DevS);
+
 // initialize on host
 #pragma omp parallel for
   for (int i=0; i < N; i++) {
@@ -37,8 +41,6 @@ int main(int argc, char **argv) {
       }
     }
   }
-
-  const int DevS = omp_get_num_devices();
 
   struct timespec t0,t1,t2;
   fprintf(stderr, "Starting matmul on %d devices\n", DevS);
