@@ -7,9 +7,9 @@ int numthreads = 256;
 int numteams = 56;
 
 #ifdef LARGE
-#define N (1000*8)
+#define N (10*7*5*4*3*2)  // 8400
 #else
-#define N  (128*8)
+#define N  (5*7*5*3*2)    // 1050
 #endif
 float matA[N][N];
 float matB[N][N];
@@ -23,6 +23,10 @@ int main(int argc, char **argv) {
     DevS = atoi(Env);
   fprintf(stderr, "DevS=%d\n",DevS);
 
+  if (N % DevS != 0) {
+    fprintf(stderr, "Matrix Size %d not multiple of DevS %d\n", N , DevS);
+    return 1;
+  }
 // initialize on host
 #pragma omp parallel for
   for (int i=0; i < N; i++) {
@@ -43,7 +47,7 @@ int main(int argc, char **argv) {
   }
 
   struct timespec t0,t1,t2;
-  fprintf(stderr, "Starting matmul on %d devices\n", DevS);
+  fprintf(stderr, "Starting matmul %dx%d on %d devices\n", N, N, DevS);
   clock_gettime(CLOCK_REALTIME, &t0);
   // time the data copy separate from gflops
   for (int dev=0; dev < DevS; dev++) {
@@ -67,7 +71,7 @@ int main(int argc, char **argv) {
         matC[i][j] = tmp;
       }
     }
-   fprintf(stderr, "Done with %d dev\n",dev);
+    fprintf(stderr, "Done with device # %d\n", dev);
   }
   for (int dev=0; dev <DevS; dev++) {
   #pragma omp target exit data device(dev) map(from: matC[dev*N/DevS:N/DevS])
