@@ -16,7 +16,8 @@ ifeq ("$(wildcard $(AOMP))","")
   endif
 endif
 # --- End Standard Makefile check for AOMP installation ---
-AOMP_GPU ?= gfx900
+INSTALLED_GPU  = $(shell $(AOMP)/bin/mygpu -d gfx900)
+AOMP_GPU ?= $(INSTALLED_GPU)
 AOMP_GPUTARGET = amdgcn-amd-amdhsa
 ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
    AOMP_GPUTARGET = nvptx64-nvidia-cuda
