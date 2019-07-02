@@ -150,6 +150,7 @@ ${BIN_DIR}:
 	@if [ ! -d ${BIN_DIR} ]; then mkdir -p ${BIN_DIR} ; fi
 
 clean:
+	rm -f ${CoMD_EXE} .depend.bak
 	rm -f *.o CoMD_info.h .depend
 
 distclean: clean
