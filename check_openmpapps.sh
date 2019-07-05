@@ -25,6 +25,11 @@ execute_makefile(){
 	make clean
 	TT0=`date`
 	make
+ ret=$?
+ if [ $ret != 0 ]; then
+       echo " Return Code for $base: $ret"  >> $1
+       return
+ fi
 	TT1=`date`
 	make run
        echo " Return Code for $base: $?"  >> $1

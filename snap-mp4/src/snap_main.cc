@@ -49,7 +49,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "buffers.h"
 #pragma GCC diagnostic ignored "-Wc++11-compat-deprecated-writable-strings"
 
-
+int errors = 0;
 double sweep_mpi_time = 0.0;
 double sweep_mpi_recv_time = 0.0;
 
@@ -342,8 +342,10 @@ int main(int argc, char **argv)
         // Exit the time loop early if outer not converged
         if (!outerdone)
         {
-            if (rankinfo.rank == 0)
+            if (rankinfo.rank == 0){
                 printf(" * Stopping because not converged *\n");
+                errors++;
+            }
             break;
         }
 
@@ -386,7 +388,8 @@ int main(int argc, char **argv)
     free_buffers(&buffers);
 
     finish_comms();
-
+    if (errors)
+      return 1;
     return EXIT_SUCCESS;
 }
 
