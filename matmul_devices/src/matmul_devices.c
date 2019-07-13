@@ -27,6 +27,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "Matrix Size %d not multiple of DevS %d\n", N , DevS);
     return 1;
   }
+fprintf(stderr,"Init on host\n");
 // initialize on host
 #pragma omp parallel for
   for (int i=0; i < N; i++) {
@@ -36,6 +37,7 @@ int main(int argc, char **argv) {
       matE[i][j] = 0;
     }
   }
+fprintf(stderr,"Generate expected\n");
 // generate expected result on host
 #pragma omp parallel for
   for (int i=0; i < N; i++) {
@@ -46,7 +48,15 @@ int main(int argc, char **argv) {
     }
   }
 
-  struct timespec t0,t1,t2;
+  struct timespec t0,t1,t2,t3;
+  fprintf(stderr, "device init\n");
+  clock_gettime(CLOCK_REALTIME, &t3);
+  int alpha=0;
+  #pragma omp target map(tofrom:alpha)
+  {
+  alpha =1;
+  }
+  fprintf(stderr, "Alpha=%d\n",alpha);
   fprintf(stderr, "Starting matmul %dx%d on %d devices\n", N, N, DevS);
   clock_gettime(CLOCK_REALTIME, &t0);
   // time the data copy separate from gflops
@@ -78,6 +88,8 @@ int main(int argc, char **argv) {
   }
   clock_gettime(CLOCK_REALTIME, &t2);
   float ops = (float)N *N *N *2.0;
+  double d = (t0.tv_sec - t3.tv_sec) + (t0.tv_nsec - t3.tv_nsec)/1e9;
+  fprintf(stderr, "Time %g GBytes/sec %g for devinit\n", d, N*N*3.0*4/d/1e9);
   double m = (t1.tv_sec - t0.tv_sec) + (t1.tv_nsec - t0.tv_nsec)/1e9;
   fprintf(stderr, "Time %g GBytes/sec %g for copy\n", m, N*N*3.0*4/m/1e9);
   double t = (t2.tv_sec - t1.tv_sec) + (t2.tv_nsec - t1.tv_nsec)/1e9;
