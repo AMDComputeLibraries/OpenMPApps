@@ -57,13 +57,20 @@ fprintf(stderr,"Generate expected\n");
   alpha =1;
   }
   fprintf(stderr, "Alpha=%d\n",alpha);
-  fprintf(stderr, "Starting matmul %dx%d on %d devices\n", N, N, DevS);
   clock_gettime(CLOCK_REALTIME, &t0);
+
+  float ops = (float)N *N *N *2.0;
+  double d = (t0.tv_sec - t3.tv_sec) + (t0.tv_nsec - t3.tv_nsec)/1e9;
+  fprintf(stderr, "Time %g GBytes/sec %g for devinit\n", d, N*N*3.0*4/d/1e9);
+
+  fprintf(stderr, "Starting matmul %dx%d on %d devices\n", N, N, DevS);
   // time the data copy separate from gflops
   for (int dev=0; dev < DevS; dev++) {
     #pragma omp target enter data device(dev) map(to: matA, matB, matC)
   }
   clock_gettime(CLOCK_REALTIME, &t1);
+  double m = (t1.tv_sec - t0.tv_sec) + (t1.tv_nsec - t0.tv_nsec)/1e9;
+  fprintf(stderr, "Time %g GBytes/sec %g for copy\n", m, N*N*3.0*4/m/1e9);
 #pragma omp parallel for num_threads(DevS)
   for (int dev=0; dev < DevS; dev++) {
     float tmp;
@@ -87,11 +94,6 @@ fprintf(stderr,"Generate expected\n");
   #pragma omp target exit data device(dev) map(from: matC[dev*N/DevS:N/DevS])
   }
   clock_gettime(CLOCK_REALTIME, &t2);
-  float ops = (float)N *N *N *2.0;
-  double d = (t0.tv_sec - t3.tv_sec) + (t0.tv_nsec - t3.tv_nsec)/1e9;
-  fprintf(stderr, "Time %g GBytes/sec %g for devinit\n", d, N*N*3.0*4/d/1e9);
-  double m = (t1.tv_sec - t0.tv_sec) + (t1.tv_nsec - t0.tv_nsec)/1e9;
-  fprintf(stderr, "Time %g GBytes/sec %g for copy\n", m, N*N*3.0*4/m/1e9);
   double t = (t2.tv_sec - t1.tv_sec) + (t2.tv_nsec - t1.tv_nsec)/1e9;
   fprintf(stderr, "Time %g GFlops/sec %g for compute\n", t, ops/t/1e9);
   double c = (t2.tv_sec - t0.tv_sec) + (t2.tv_nsec - t0.tv_nsec)/1e9;
