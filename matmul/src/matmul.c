@@ -3,8 +3,14 @@
 #include <time.h>
 #include <omp.h>
 
-int numthreads = 256;
-int numteams = 56;
+const int numthreads = 256;
+const int numteams = 56;
+#ifndef NUMTHREADS
+#define NUMTHREADS numthreads
+#endif
+#ifndef NUMTEAMS
+#define NUMTEAMS numteams
+#endif
 
 #define N (1024*2)
 float matA[N][N];
@@ -41,7 +47,7 @@ int main(int argc, char **argv) {
     clock_gettime(CLOCK_REALTIME, &t1);
     float tmp;
     // leaving num_threads and teams off, to allow easier env-var control
-    #pragma omp target teams //num_teams(numteams) //thread_limit(numthreads)
+    #pragma omp target teams num_teams(NUMTEAMS) thread_limit(NUMTHREADS)
     #pragma omp distribute parallel for private(tmp) collapse(2)
     for (int i = 0; i < N; i++) {
       for (int j = 0; j < N; j++) {

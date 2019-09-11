@@ -41,7 +41,7 @@ endif
 ifdef MP4BUILD
 CLANG=$(AOMP)/bin/clang
 
-CXXFLAGS = $(host_debug_flag) -O3 -I${OMPIDIR}/include -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU) $(VERBOSE)
+CXXFLAGS = $(host_debug_flag) -O3 -I${OMPIDIR}/include -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU) $(VERBOSE) $(CDEFS)
 CXX = $(AOMP)/bin/clang
 LFLAGS = -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -target $(AOMP_CPUTARGET)
 ifeq (nvptx,$(findstring nvptx,$(AOMP_GPUTARGET)))
