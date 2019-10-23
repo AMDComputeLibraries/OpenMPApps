@@ -4,6 +4,8 @@
 SHELL = /bin/sh
 .SUFFIXES: .cc .o
 
+host_debug_flag ?=
+
 # --- Standard Makefile check for AOMP installation ---
 ifeq ("$(wildcard $(AOMP))","")
   ifneq ($(AOMP),)
@@ -67,7 +69,7 @@ mpi = -DUSE_MPI=$(USE_MPI)
 endif
 
 # Tuning flags for Power 8
-CXXFLAGS = -O3 $(shared) $(mpi) $(teams) $(threads) $(gpu) -lm -Wno-unused-command-line-argument
+CXXFLAGS = -O3 $(shared) $(mpi) $(teams) $(threads) $(gpu) -lm -Wno-unused-command-line-argument $(host_debug_flag)
 CXXFLAGS += -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU)
 CXX = $(AOMP)/bin/clang++
 LDFLAGS = -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -target $(AOMP_CPUTARGET) -lm

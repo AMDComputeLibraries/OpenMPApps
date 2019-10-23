@@ -1,6 +1,6 @@
 MP4BUILD = 1
 #host_debug_flag = -g
-host_debug_flag =
+host_debug_flag ?=
 
 # --- Standard Makefile check for AOMP installation ---
 ifeq ("$(wildcard $(AOMP))","")

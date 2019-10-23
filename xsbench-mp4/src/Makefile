@@ -190,6 +190,7 @@ ifeq ($(BINARY_READ),yes)
   CFLAGS += -DBINARY_READ
 endif
 
+CFLAGS += $(host_debug_flag)
 
 #===============================================================================
 # Targets to Build

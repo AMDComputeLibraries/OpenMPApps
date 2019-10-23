@@ -1,6 +1,7 @@
 # Makefile for src-openmp
 
 SHELL = /bin/bash
+host_debug_flag ?=
 
 ### CoMD can be built in either double or single precision and with or
 ### without MPI.  Select desired precision and MPI here.
@@ -43,7 +44,7 @@ DEBUG_LEVEL ?= 0
 ### (such as -lm for the math library) put them in C_LIB.
 #CC = mpicc
 CC = $(AOMP)/bin/clang
-FLAGS = -O3 -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU)
+FLAGS = -O3 -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU) $(host_debug_flag)
 
 CFLAGS = -O3 -std=c99
 FLAGS += -D__GPU__

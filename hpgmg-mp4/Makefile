@@ -1,5 +1,7 @@
 HPGMG_ARCH := $(if $(PETSC_ARCH),$(PETSC_ARCH),build)
 
+host_debug_flag ?=
+
 # --- Standard Makefile check for AOMP installation ---
 ifeq ("$(wildcard $(AOMP))","")
   ifneq ($(AOMP),)
@@ -55,7 +57,7 @@ all: build
 
 hpgmgconf.pyc:
 	@echo "Running config for directory $(HPGMG_ARCH).  "
-	./configure --arch=$(HPGMG_ARCH) --no-fe --no-fv-mpi --CC=$(AOMP)/bin/clang --CFLAGS="-O3 -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU)" --LDFLAGS="-lm -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -target $(AOMP_CPUTARGET)" --LDLIBS="$(CUDA_LIBS)"
+	./configure --arch=$(HPGMG_ARCH) --no-fe --no-fv-mpi --CC=$(AOMP)/bin/clang --CFLAGS="-O3 $(host_debug_flags) -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU)" --LDFLAGS="-lm -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -target $(AOMP_CPUTARGET)" --LDLIBS="$(CUDA_LIBS)"
 
 build:	hpgmgconf.pyc
 	$(SETDEBUGLIB) $(MAKE) -C $(HPGMG_ARCH)
