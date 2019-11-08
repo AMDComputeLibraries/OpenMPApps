@@ -89,6 +89,7 @@ int main(int argc, char **argv)
 
     struct timers timers;
     timers.setup_time = wtime();
+    timers.convergence_time = 0.0;
 
     int rank,size;
     size_t nsize;
