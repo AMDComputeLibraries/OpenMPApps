@@ -31,7 +31,7 @@ DEBUG_LEVEL ?= 0
 ifdef MP4BUILD 
 CLANG=$(AOMP)/bin/clang++
 
-OMPIDIR = /usr/lib/openmpi
+OMPIDIR ?= /usr/lib/openmpi
 ifeq "$(wildcard $(OMPIDIR) )" ""
   OMPIDIR = /usr/lib/x86_64-linux-gnu/openmpi
 endif
@@ -52,7 +52,7 @@ LFLAGS =
 LIBS = -lm 
 endif
 
-MPILIBS = -L${OMPIDIR}/lib -lmpi
+MPILIBS ?= -L${OMPIDIR}/lib -lmpi
 
 ifeq ($(DEBUG_LEVEL),0)
   SETDEBUGLIB =
