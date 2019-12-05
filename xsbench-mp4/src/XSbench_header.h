@@ -95,7 +95,7 @@ double timer();
 void logo(int version);
 void center_print(const char *s, int width);
 void print_results(Inputs in, int mype, double runtime, int nprocs,
-     double vval, unsigned long long vhash);
+     double vval, unsigned long long vhash, int* errors);
 void print_inputs(Inputs in, int nprocs, int version);
 void border_print(void);
 void fancy_int(long a);

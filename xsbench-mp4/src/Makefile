@@ -7,7 +7,7 @@ OPTIMIZE    = no
 PROFILE     = no
 MPI         = no
 VEC_INFO    = no
-VERIFY      = no
+VERIFY      = yes
 BINARY_DUMP = no
 BINARY_READ = no
 

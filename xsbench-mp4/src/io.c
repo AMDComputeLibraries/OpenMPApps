@@ -36,7 +36,7 @@ void center_print(const char *s, int width)
 	fputs("\n", stdout);
 }
 
-void print_results(Inputs in, int mype, double runtime, int nprocs, double vval, unsigned long long vhash)
+void print_results(Inputs in, int mype, double runtime, int nprocs, double vval, unsigned long long vhash, int* errors)
 {
 	// Calculate Lookups per sec
 	int lookups_per_sec = (int) ((double) in.lookups / runtime);
@@ -74,6 +74,8 @@ void print_results(Inputs in, int mype, double runtime, int nprocs, double vval,
 		#endif
 		#ifdef VERIFICATION
 		printf("Verification checksum: %llu\n", vhash);
+               if(vhash != 74966788162)
+                 *errors = 1;
 		#endif
 		//printf("Verification value: %0.4f\n", vval/in.lookups);
 		border_print();

@@ -397,11 +397,17 @@ int main( int argc, char* argv[] )
 #endif
 
   // Print / Save Results and Exit
-  print_results(in, mype, tock-tick, nprocs, dval, vhash);
+  int errors = 0;
+  print_results(in, mype, tock-tick, nprocs, dval, vhash, &errors);
 
 #ifdef MPI
   MPI_Finalize();
 #endif
 
+  if (errors){
+    printf("Checksum Failed!\n");
+    return 1;
+  }
+  printf("Success!\n");
   return 0;
 }
