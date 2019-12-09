@@ -177,7 +177,8 @@ void ParseCommandLineOptions(int argc, char *argv[],
 void VerifyAndWriteFinalOutput(Real_t elapsed_time,
                                Domain& locDom,
                                Int_t nx,
-                               Int_t numRanks)
+                               Int_t numRanks,
+                               Int_t* errors)
 {
    // GrindTime1 only takes a single domain into account, and is thus a good way to measure
    // processor speed indepdendent of MPI parallelism.
@@ -191,6 +192,8 @@ void VerifyAndWriteFinalOutput(Real_t elapsed_time,
    printf("   MPI tasks           =  %i \n",    numRanks);
    printf("   Iteration count     =  %i \n",    locDom.cycle());
    printf("   Final Origin Energy = %12.6e \n", locDom.e(ElemId));
+   printf("   Final Origin Energy = %12.6f \n", locDom.e(ElemId));
+   printf("   Final Origin Energy = %f \n", locDom.e(ElemId));
 
    Real_t   MaxAbsDiff = Real_t(0.0);
    Real_t TotalAbsDiff = Real_t(0.0);
@@ -220,5 +223,20 @@ void VerifyAndWriteFinalOutput(Real_t elapsed_time,
    printf("Grind time (us/z/c)  = %10.8g (per dom)  (%10.8g overall)\n", grindTime1, grindTime2);
    printf("FOM                  = %10.8g (z/s)\n\n", 1000.0/grindTime2); // zones per second
 
+   // Validate Results
+   Real_t finalOriginEnergy = locDom.e(ElemId);
+   Real_t energyMinVal = 202507.45;
+   Real_t energyMaxVal = 202507.54;
+
+   if(finalOriginEnergy < energyMinVal || finalOriginEnergy > energyMaxVal){
+     *errors = 1;
+     printf("***Validation Error: Final Origin Energy incorrect.***\n");
+   }
+   //Any difference larger than 10^-8 is outside margin of error
+   Real_t maxDiff = 0.00000009;
+   if(MaxAbsDiff > maxDiff || TotalAbsDiff > maxDiff || MaxRelDiff > maxDiff){
+     *errors = 1;
+     printf("***Validation Error: Measures of symmetry outside margin of error.***\n");
+   }
    return ;
 }

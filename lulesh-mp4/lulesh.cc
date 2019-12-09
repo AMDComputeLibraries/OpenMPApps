@@ -3296,14 +3296,20 @@ int main(int argc, char *argv[])
    if (opts.viz) {
       DumpToVisit(*locDom, opts.numFiles, myRank, numRanks) ;
    }
-   
+   int errors;
    if ((myRank == 0) && (opts.quiet == 0)) {
-      VerifyAndWriteFinalOutput(elapsed_timeG, *locDom, opts.nx, numRanks);
+      errors = 0;
+      VerifyAndWriteFinalOutput(elapsed_timeG, *locDom, opts.nx, numRanks, &errors);
    }
 
 #if USE_MPI
    MPI_Finalize() ;
 #endif
 
+   if(errors) {
+     printf("Fail!\n");
+     return 1;
+   }
+   printf("Success!\n");
    return 0 ;
 }
