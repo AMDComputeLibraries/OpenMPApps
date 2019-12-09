@@ -75,7 +75,7 @@ static BasePotential* initPotential(
    int doeam, const char* potDir, const char* potName, const char* potType);
 static SpeciesData* initSpecies(BasePotential* pot);
 static Validate* initValidate(SimFlat* s);
-static void validateResult(const Validate* val, SimFlat *sim);
+static void validateResult(const Validate* val, SimFlat *sim, int* errors);
 
 static void sumAtoms(SimFlat* s);
 static void printThings(SimFlat* s, int iStep, double elapsedTime);
@@ -103,6 +103,16 @@ int main(int argc, char** argv)
    printSimulationDataYaml(screenOut, sim);
 
    Validate* validate = initValidate(sim); // atom counts, energy
+
+   //validate initial cohesive energy, margin of error last 2 decmial places for Lennard-Jones (-1.243619295058)
+   int errors = 0;
+   double initPotentialEnergy = sim->ePotential/sim->atoms->nGlobal;
+   if(initPotentialEnergy < -1.243619295099 || initPotentialEnergy > -1.243619295000)
+   {
+     errors = 1;
+     printf("***Validation Error: Initial potential energy outside margin of error.***\n");
+   }
+
    timestampBarrier("Initialization Finished\n");
 
    timestampBarrier("Starting simulation\n");
@@ -133,7 +143,7 @@ int main(int argc, char** argv)
    timestampBarrier("Ending simulation\n");
 
    // Epilog
-   validateResult(validate, sim);
+   validateResult(validate, sim, &errors);
    profileStop(totalTimer);
 
    printPerformanceResults(sim->atoms->nGlobal, sim->printRate);
@@ -146,6 +156,12 @@ int main(int argc, char** argv)
    timestampBarrier("CoMD Ending\n");
    destroyParallel();
 
+   if(errors){
+     printf("Fail!\n");
+     return 1;
+   }
+
+   printf("Success!\n");
    return 0;
 }
 
@@ -296,7 +312,7 @@ Validate* initValidate(SimFlat* sim)
    return val;
 }
 
-void validateResult(const Validate* val, SimFlat* sim)
+void validateResult(const Validate* val, SimFlat* sim, int* errors)
 {
    if (printRank())
    {
@@ -311,6 +327,15 @@ void validateResult(const Validate* val, SimFlat* sim)
       fprintf(screenOut, "  Initial energy  : %14.12f\n", val->eTot0);
       fprintf(screenOut, "  Final energy    : %14.12f\n", eFinal);
       fprintf(screenOut, "  eFinal/eInitial : %f\n", eFinal/val->eTot0);
+
+      //validate energy ratio, no less than 97%
+      if (eFinal/val->eTot0 < 0.97)
+      {
+        *errors = 1;
+        printf("  ***Error in validation: Energy ratio outside margin of error.***\n");
+      }
+
+      //validate atom count
       if ( nAtomsDelta == 0)
       {
          fprintf(screenOut, "  Final atom count : %d, no atoms lost\n",
@@ -321,6 +346,7 @@ void validateResult(const Validate* val, SimFlat* sim)
          fprintf(screenOut, "#############################\n");
          fprintf(screenOut, "# WARNING: %6d atoms lost #\n", nAtomsDelta);
          fprintf(screenOut, "#############################\n");
+         *errors = 1;
       }
    }
 }
