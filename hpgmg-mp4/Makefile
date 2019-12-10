@@ -72,6 +72,6 @@ test : all
 	$(SETDEBUGLIB) $(MAKE) -C $(HPGMG_ARCH) test
 
 clean :
-	$(MAKE) -C $(HPGMG_ARCH) clean ; rm -rf build ; rm hpgmgconf.pyc
+	rm -rf build ; rm -f hpgmgconf.pyc
 
 .PHONY: all test clean
