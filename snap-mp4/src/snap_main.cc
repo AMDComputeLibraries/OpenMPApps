@@ -88,6 +88,7 @@ int main(int argc, char **argv)
     check_mpi(mpi_err, "MPI_Init");
 
     struct timers timers;
+    memset(&timers, 0, sizeof(timers));
     timers.setup_time = wtime();
     timers.convergence_time = 0.0;
 
