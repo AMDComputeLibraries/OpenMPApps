@@ -1,0 +1,145 @@
+      attributes(global) subroutine ax_cuf1(w,u,ur,us,ut,
+     &                gxyz1,gxyz2,gxyz3,gxyz4,gxyz5,gxyz6,dxm1,dxtm1)
+
+      include 'SIZE'
+
+      real, intent(out) :: w(lx1,ly1,lz1,lelt)
+      real, intent(in)  :: u(lx1,ly1,lz1,lelt)
+      real ur  (lx1,ly1,lz1,lelt)
+      real us  (lx1,ly1,lz1,lelt)
+      real ut  (lx1,ly1,lz1,lelt)
+
+      real gxyz1(lx1,ly1,lz1,lelt)
+      real gxyz2(lx1,ly1,lz1,lelt)
+      real gxyz3(lx1,ly1,lz1,lelt)
+      real gxyz4(lx1,ly1,lz1,lelt)
+      real gxyz5(lx1,ly1,lz1,lelt)
+      real gxyz6(lx1,ly1,lz1,lelt)
+
+      real, intent(in) :: dxm1(lx1,lx1)
+      real, intent(in) :: dxtm1(lx1,lx1)
+
+      real rtmp,stmp,ttmp,wijke
+      real, shared :: shdxm1(lx1,lx1)
+      real, shared :: shdxtm1(lx1,lx1)
+      real, shared :: shur(lx1,ly1,lz1)
+      real, shared :: shus(lx1,ly1,lz1)
+      real, shared :: shut(lx1,ly1,lz1)
+      integer e,i,j,k,l
+
+      e = blockIdx%x
+      k = threadIdx%z
+      j = threadIdx%y
+      i = threadIdx%x
+
+      if (k.eq.1) then
+         shdxm1(i,j) = dxm1(i,j)
+         shdxtm1(i,j) = dxtm1(i,j)
+      end if
+      call syncthreads()
+
+      rtmp = 0.0
+      stmp = 0.0
+      ttmp = 0.0
+      do l=1,lx1
+        rtmp = rtmp+shdxm1(i,l)*u(l,j,k,e)
+        stmp = stmp+shdxm1(j,l)*u(i,l,k,e)
+        ttmp = ttmp+shdxm1(k,l)*u(i,j,l,e)
+      enddo
+          shur(i,j,k) = gxyz1(i,j,k,e)*rtmp
+     $                + gxyz2(i,j,k,e)*stmp
+     $                + gxyz3(i,j,k,e)*ttmp
+
+          shus(i,j,k) = gxyz2(i,j,k,e)*rtmp
+     $                + gxyz4(i,j,k,e)*stmp
+     $                + gxyz5(i,j,k,e)*ttmp
+
+          shut(i,j,k) = gxyz3(i,j,k,e)*rtmp
+     $                + gxyz5(i,j,k,e)*stmp
+     $                + gxyz6(i,j,k,e)*ttmp
+
+      call syncthreads()
+
+      wijke = 0.0
+      do l=1,lx1
+               wijke = wijke + shdxtm1(i,l)*shur(l,j,k) 
+     $                       + shdxtm1(j,l)*shus(i,l,k)
+     $                       + shdxtm1(k,l)*shut(i,j,l)
+      enddo
+      w(i,j,k,e) = wikje
+      ur(i,j,k,e) = shur(i,j,k)
+      us(i,j,k,e) = shus(i,j,k)
+      ut(i,j,k,e) = shut(i,j,k)
+      return
+      end
+
+
+      attributes(global) subroutine ax_cuf2(w,u,ur,us,ut,
+     &                gxyz,dxm1,dxtm1)
+
+      include 'SIZE'
+
+      real, intent(out) :: w(lx1,ly1,lz1,lelt)
+      real, intent(in)  :: u(lx1,ly1,lz1,lelt)
+      real ur  (lx1,ly1,lz1,lelt)
+      real us  (lx1,ly1,lz1,lelt)
+      real ut  (lx1,ly1,lz1,lelt)
+
+      real gxyz(6,lx1,ly1,lz1,lelt)
+
+      real, intent(in) :: dxm1(lx1,lx1)
+      real, intent(in) :: dxtm1(lx1,lx1)
+
+      real rtmp,stmp,ttmp,wijke
+      real, shared :: shdxm1(lx1,lx1)
+      real, shared :: shdxtm1(lx1,lx1)
+      real, shared :: shur(lx1,ly1,lz1)
+      real, shared :: shus(lx1,ly1,lz1)
+      real, shared :: shut(lx1,ly1,lz1)
+      integer e,i,j,k,l
+
+      e = blockIdx%x
+      k = threadIdx%z
+      j = threadIdx%y
+      i = threadIdx%x
+
+      if (k.eq.1) then
+         shdxm1(i,j) = dxm1(i,j)
+         shdxtm1(i,j) = dxtm1(i,j)
+      end if
+      call syncthreads()
+
+      rtmp = 0.0
+      stmp = 0.0
+      ttmp = 0.0
+      do l=1,lx1
+        rtmp = rtmp+shdxm1(i,l)*u(l,j,k,e)
+        stmp = stmp+shdxm1(j,l)*u(i,l,k,e)
+        ttmp = ttmp+shdxm1(k,l)*u(i,j,l,e)
+      enddo
+          shur(i,j,k) = gxyz(1,i,j,k,e)*rtmp
+     $                + gxyz(2,i,j,k,e)*stmp
+     $                + gxyz(3,i,j,k,e)*ttmp
+
+          shus(i,j,k) = gxyz(2,i,j,k,e)*rtmp
+     $                + gxyz(4,i,j,k,e)*stmp
+     $                + gxyz(5,i,j,k,e)*ttmp
+
+          shut(i,j,k) = gxyz(3,i,j,k,e)*rtmp
+     $                + gxyz(5,i,j,k,e)*stmp
+     $                + gxyz(6,i,j,k,e)*ttmp
+
+      call syncthreads()
+
+      wijke = 0.0
+      do l=1,lx1
+               wijke = wijke + shdxtm1(i,l)*shur(l,j,k) 
+     $                       + shdxtm1(j,l)*shus(i,l,k)
+     $                       + shdxtm1(k,l)*shut(i,j,l)
+      enddo
+      w(i,j,k,e) = wikje
+      ur(i,j,k,e) = shur(i,j,k)
+      us(i,j,k,e) = shus(i,j,k)
+      ut(i,j,k,e) = shut(i,j,k)
+      return
+      end

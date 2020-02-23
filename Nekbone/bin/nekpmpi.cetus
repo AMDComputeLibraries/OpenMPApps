@@ -1,0 +1,26 @@
+
+PROJECT="CEED_ECPAD"
+REQ_WALLTIME="00:10:00"
+
+rm *cobaltlog*
+
+  REAFILE=$1
+  CORECOUNT=$2
+
+SESSION=${REAFILE%.[rR][eE][aA]}
+echo "*** running session $SESSION"
+
+echo $1        >  SESSION.NAME
+echo `pwd`'/' >>  SESSION.NAME
+
+  rm -f $SESSION.output
+  rm -f logfile
+  rm -f xxt_map.rea
+
+OUTFILE="`pwd`/$SESSION.c$2-n$3-cetus-`date "+%F_%H_%M_%S"`"
+  touch $SESSION.rea
+  touch $OUTFILE.output
+  ln $OUTFILE.output $SESSION.output
+  ln $OUTFILE.output logfile
+
+qsub -A CEED_ECPAD  -n $3  --mode c$CORECOUNT -t $REQ_WALLTIME -o logfile ./nekbone  

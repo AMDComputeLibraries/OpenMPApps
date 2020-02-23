@@ -1,0 +1,10 @@
+C
+C     local-global-local map, ather-scatter openacc handle
+C
+      parameter(ltot=lx1*ly1*lz1*lelt)
+
+      common /comm_handles_acc/ ids_lgl1(-1:ltot),ids_lgl2(-1:ltot)
+     $                         ,ids_ptr(ltot),gsh_acc
+
+      integer                   ids_lgl1,ids_lgl2,ids_ptr,gsh_acc
+

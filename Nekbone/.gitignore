@@ -1,0 +1,13 @@
+# Vim and Emacs backup and tag files
+*~
+*.swp
+*.swo
+tags
+
+# PyCharm configs
+.idea
+
+# Cobalt runjob files
+*.cobaltlog
+*.output
+*.error

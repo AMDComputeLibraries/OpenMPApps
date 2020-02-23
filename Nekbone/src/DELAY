@@ -1,0 +1,8 @@
+      common /delayr8/ tmean,tavg,rms,d_range
+      real*8           tmean,tavg,rms,d_range
+
+      common /delayr/  t_delay
+      real             t_delay
+
+      common /delayi/  int_calls
+      integer          int_calls

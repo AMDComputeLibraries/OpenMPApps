@@ -1,0 +1,64 @@
+      parameter (lxm=lx1+2,lym=lxm,lzm=lxm) ! mgrid sizes
+      parameter (lmgs=1)                   ! max number of multigrid solvers
+      parameter (lmgn=3)                   ! max number of multigrid levels
+      parameter (lmgx=lmgn+1)              ! max number of mg index levels
+      parameter (lmg_rwt=2*lxm*lzm)        ! restriction weight max size
+      parameter (lmg_fasts=2*lxm*lxm)      ! FDM S max size
+      parameter (lmg_fastd=2*lxm*lym*lzm)  ! FDM D max size
+      parameter (lmg_swt=2*lxm*lzm)        ! schwarz weight max size
+
+      common /mghs/ mg_lmax                     !number of multigrid levels
+     $            , mg_nx(lmgn)                 !level poly. order (for GLL pts)
+     $            , mg_ny(lmgn), mg_nz (lmgn)
+     $            , mg_nh(lmgn), mg_nhz(lmgn)   !number of 1d nodes
+     $            , mg_gsh_schwarz_handle(lmgn,lmgs) !dssum schwarz handles
+     $            , mg_gsh_handle        (lmgn,lmgs) !dssum handle
+     $            , mg_rstr_wt_index     (lmgx,0:lmgs) !index for start
+     $            , mg_fast_s_index      (lmgx,0:lmgs)
+     $            , mg_fast_d_index      (lmgx,0:lmgs)
+     $            , mg_schwarz_wt_index  (lmgx,0:lmgs)
+     $            , mg_fld                           !active mg field (1)
+
+      integer mg_lmax,mg_nx,mg_ny,mg_nz,mg_nh
+      integer mg_gsh_handle
+      integer mg_rstr_wt_index
+      integer mg_fast_s_index, mg_fast_d_index
+      integer mg_gsh_schwarz_handle
+ 
+      common /mghr/ mg_jh(lxm*lxm,lmgn)      !c-to-f interpolation matrices
+     $            , mg_jht(lxm*lxm,lmgn)     !transpose of mg_jh
+     $            , mg_ah(lxm*lxm,lmgn)      !A hat matrices
+     $            , mg_bh(lxm,lmgn)          !B hat matrices
+     $            , mg_dh(lxm*lxm,lmgn)      !D hat matrices
+     $            , mg_dht(lxm*lxm,lmgn)     !D hat transpose matrices
+     $            , mg_zh(lxm,lmgn)          !Nodal coordinates
+ 
+     $            , mg_rstr_wt   (0:lmgs*lmg_rwt*2*ldim*lelt-1) !restriction wt
+     $            , mg_mask      (0:lmgs*lmg_rwt*4*ldim*lelt-1)   !b.c. mask
+     $            , mg_fast_s    (0:lmgs*lmg_fasts*2*ldim*lelt-1)
+     $            , mg_fast_d    (0:lmgs*lmg_fastd*lelt-1)
+     $            , mg_schwarz_wt(0:lmgs*lmg_swt*4*ldim*lelt-1)
+ 
+
+     $            , mg_work      (2*lxm*lym*lzm*lelt) ! must be able to hold 
+     $            , mg_worke     (lxm*lym*lzm,6)      ! schwarz arrays
+
+      real mg_jh,mg_jht,mg_ah,mg_bh,mg_dh,mg_dht,mg_zh
+      real mg_rstr_wt, mg_mask
+      real mg_fast_s, mg_fast_d
+      real mg_schwarz_wt
+      real mg_solve_e,mg_solve_r
+      real mg_work,mg_worke
+
+      integer mg_imask(0:lmgs*lmg_rwt*4*ldim*lelt-1) ! For h1mg, mask is a ptr
+      equivalence(mg_imask,mg_mask)
+
+
+c     Specific to h1 multigrid:
+
+      common /mgh1i/ mg_h1_lmax
+     $             , mg_h1_n  (lmgx,ldimt1)
+     $             , p_mg_msk (lmgx,ldimt1)
+
+      integer mg_h1_n
+      integer p_mg_msk

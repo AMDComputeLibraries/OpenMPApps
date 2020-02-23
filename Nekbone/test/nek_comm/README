@@ -1,0 +1,13 @@
+This is an example demonstrating the nekbone
+communication suite.
+It is just the communication tester
+found in nekbone proper.
+
+It has no geometric setup and uses only
+the mpi-communication routines in the 
+source code.
+
+This example can only be ran in parallel.
+
+It is set by changing PPLIST in makenek 
+to equal NEKCOMM

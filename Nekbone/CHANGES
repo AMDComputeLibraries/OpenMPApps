@@ -1,0 +1,93 @@
+***********************************************************
+*              Changes in 3.1                             *
+***********************************************************
+ -Fixed small bug that would cause floating point errors for
+  large element runs
+
+ -Allow the code to continue when specific domain decomp. is
+  not included in the data.rea file.  The code will find the
+  appropriate decomposition, so there is no need to fail 
+  without user provided input
+
+ -Fixed logical comparisons for BG platforms.
+***********************************************************
+*              Changes in 3.0                             *
+***********************************************************
+ -New Multigrid preconditioner added as an option to the 
+  mini app cases.  To run with the new option, add 'MGRID'
+  to the PPLIST parameter set in makenek.
+
+ -Added nx0 and nxN capabilities back into nekbone so that
+  tests may be ran with multiple polynomial orders in one
+  test submission, without recompiling the source code.
+
+ -Implemented a step increment variable for the number of 
+  elements and polynomial order.  Set in the data.rea file,
+  users can now control the increase of the element counts
+  and the polynomial order increase.  Default is set to 1,
+  which is the standard case.
+ 
+ -Added user control of the element and processor decomposition.
+  Parameters are read in through the data.rea file to set the
+  processor and element x,y,z values.  If invalid values are
+  provided, nekbone will calculate the correct values.
+
+ -Added new examples, nek_comm, nek_dlay, nek_mgrid, example2,
+  and example3.  
+  Nek_comm example only runs
+  the communication/platform timer.  There is no geometry for
+  this case and is set to test the latency, bandwidth, matrix
+  matrix products used in nekbone.  
+
+  Nek_dlay example runs the standard nekbone example, but 
+  includes a simulated processor load imbalance.  A delay
+  is applied on a node basis to all MPI calls.
+
+  Nek_mgrid example runs an example with the multigrid 
+  preconditioner turned on. 
+  These tests are triggered by adding "NEKCOMM", "NEKDLAY",
+  "MGRID"
+  to the PPLIST in the makenek script.
+
+  examples 2 and 3 demonstrate some of the new user control
+  options included in this update.
+
+  More details are in the readme files included in each example.
+
+ -Cleaned up the memory and include files to rid nekbone of 
+  unused arrays
+
+ -Cleaned up stdout output to be more clear and concise 
+
+***********************************************************
+*              Changes in 2.1                             *
+***********************************************************
+ -Fixed nx0 and nxN control of polynomial order.  Default is
+ 	now to use lx1 until further notice.  Variable 
+	nx1 caused memory unstabilities and needs further 
+	development.
+ -Fixed a memory copy bug in the jl/ array transfer code.  
+	sarray_trasfer, used for the tuple transfer, should
+	be fixed now.
+
+***********************************************************
+*              Changes in 2.0                             *
+***********************************************************
+ -Subroutine gsync() has changed to nekgsync() to avoid
+	possible conflict on certain architectures
+
+ -Executable is renamed 'nekbone' to replace 'nekproxy' and
+	other naming changes.
+
+ -iel0 and ielN  set in data.rea file are now used to control the
+ 	range of tests ran.  Test range in size from iel0
+	to ielN elements per process.  (prevoiusly tests 
+	were ran from 1 to lelt elements per process)  The
+	maximum value of ielN is lelt.
+
+ -nx0 and nxN set in data.rea file are now used to control the
+	range of polynomial orders.   Ranging from nx0 to 
+	nxN, where nxN<=lx1 (which is set in SIZE).  Previously
+	tests only ran with nx1=lx1.  The default is set to
+	reflect this, but nekbone now supports a range of
+	polynomial orders without recompiling the code.

@@ -1,0 +1,6 @@
+      parameter (lr2=lx1*lx1)
+
+      common /ahat/ ah (lr2),bh (lr2),ch (lr2),dh (lr2)
+     $             ,zh (lr2),wh (lr2)  
+      real ah,bh,ch,dh,zh,wh
+

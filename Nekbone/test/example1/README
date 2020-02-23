@@ -1,0 +1,14 @@
+This example will run a 
+series of tests from:
+
+1 to 50 elements per process
+with polynomial order = 8
+
+and 
+
+
+1 to 50 elements per process
+with polynomial order = 10
+
+The multi-grid preconditioner
+is turn off.

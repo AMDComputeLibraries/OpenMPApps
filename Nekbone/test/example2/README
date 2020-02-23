@@ -1,0 +1,9 @@
+This example will run one 
+nekbone test with:
+
+50  elements per process
+10  polynomial order
+
+
+It will run without the multigrid
+preconditioner.

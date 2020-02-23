@@ -1,0 +1,19 @@
+
+      integer tmax
+      parameter (tmax = 1024)
+    
+      integer gopi(tmax)
+
+      real  ttemp1, ttemp2, ttemp3, ttemp4
+
+      real trzero(tmax), tcopy(tmax), tsolvem(tmax)
+      real tglsc3a(tmax), tglsc3b(tmax), tglsc3c(tmax), tglsc3d(tmax)
+      real tadd2s1(tmax), tadd2s2a(tmax), tadd2s2b(tmax), tadd2s2c(tmax)
+      real tlocalgrad3(tmax), twrwswt(tmax), tlocalgrad3t(tmax)
+      real tgsop(tmax), tgop(4,tmax)
+
+      real*8 dnekclock
+
+      common /timer/ trzero, tcopy, tsolvem, tglsc3a, tglsc3b, tglsc3c,
+     +tglsc3d, tadd2s1, tadd2s2a, tadd2s2b, tadd2s2c, tlocalgrad3,
+     +twrwswt, tlocalgrad3t, tgsop, tgop, gopi

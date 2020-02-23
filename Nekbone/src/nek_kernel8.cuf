@@ -1,0 +1,69 @@
+      attributes(global) subroutine ax_cuf2(w,u,ur,us,ut,
+     &                gxyz,dxm1,dxtm1)
+
+      include 'SIZE_CUF'
+
+      real, intent(out) :: w(lx1,ly1,lz1,lelt)
+      real, intent(in)  :: u(lx1,ly1,lz1,lelt)
+      real ur  (lx1,ly1,lz1,lelt)
+      real us  (lx1,ly1,lz1,lelt)
+      real ut  (lx1,ly1,lz1,lelt)
+
+      real gxyz(lx1,ly1,lz1,2*ldim,lelt)
+
+      real, intent(in) :: dxm1(lx1,lx1)
+      real, intent(in) :: dxtm1(lx1,lx1)
+
+      real rtmp,stmp,ttmp,wijke
+      real, shared :: shdxm1(lx1,lx1)
+      real, shared :: shdxtm1(lx1,lx1)
+      real, shared :: shur(lx1,ly1,lz1)
+      real, shared :: shus(lx1,ly1,lz1)
+      real, shared :: shut(lx1,ly1,lz1)
+      integer e,i,j,k,l
+
+      e = blockIdx%x
+      k = threadIdx%z
+      j = threadIdx%y
+      i = threadIdx%x
+
+      if (k.eq.1) then
+         shdxm1(i,j) = dxm1(i,j)
+         shdxtm1(i,j) = dxtm1(i,j)
+      end if
+      call syncthreads()
+
+      rtmp = 0.0
+      stmp = 0.0
+      ttmp = 0.0
+      do l=1,lx1
+        rtmp = rtmp+shdxm1(i,l)*u(l,j,k,e)
+        stmp = stmp+shdxm1(j,l)*u(i,l,k,e)
+        ttmp = ttmp+shdxm1(k,l)*u(i,j,l,e)
+      enddo
+          shur(i,j,k) = gxyz(i,j,k,1,e)*rtmp
+     $                + gxyz(i,j,k,2,e)*stmp
+     $                + gxyz(i,j,k,3,e)*ttmp
+
+          shus(i,j,k) = gxyz(i,j,k,2,e)*rtmp
+     $                + gxyz(i,j,k,4,e)*stmp
+     $                + gxyz(i,j,k,5,e)*ttmp
+
+          shut(i,j,k) = gxyz(i,j,k,3,e)*rtmp
+     $                + gxyz(i,j,k,5,e)*stmp
+     $                + gxyz(i,j,k,6,e)*ttmp
+
+      call syncthreads()
+
+      wijke = 0.0
+      do l=1,lx1
+               wijke = wijke + shdxtm1(i,l)*shur(l,j,k) 
+     $                       + shdxtm1(j,l)*shus(i,l,k)
+     $                       + shdxtm1(k,l)*shut(i,j,l)
+      enddo
+      w(i,j,k,e) = wijke
+!      ur(i,j,k,e) = shur(i,j,k)
+!      us(i,j,k,e) = shus(i,j,k)
+!      ut(i,j,k,e) = shut(i,j,k)
+      return
+      end
