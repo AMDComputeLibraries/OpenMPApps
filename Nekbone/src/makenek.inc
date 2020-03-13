@@ -166,7 +166,7 @@ case $F77comp in
                ;;
   *open*)       P="-r8 -cpp -fno-second-underscore"
                ;;
-  *flang*)      P="-r8 -i8 -cpp -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx900"
+  *flang*)      P="-r8 -i8 -cpp -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=${AOMP_GPU}"
                ;;
 
   *)  echo "ERROR: Unable to detect compiler!"

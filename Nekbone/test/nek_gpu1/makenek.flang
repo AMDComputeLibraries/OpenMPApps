@@ -34,7 +34,7 @@ IFMPI="false"
 USR_LFLAGS="-lm"
 
 # generic compiler flags
-G=" -O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx900 -DGPUDIRECT"
+G=" -O2  -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU -DGPUDIRECT"
 #G=" -O2 -Kieee -DGPUDIRECT"
 
 # optimization flags

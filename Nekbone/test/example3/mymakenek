@@ -29,7 +29,7 @@ IFMPI="false"
 #USR="foo.o"
 
 # linking flags
-USR_LFLAGS="-fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx900"
+USR_LFLAGS="-fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=$AOMP_GPU"
 
 # generic compiler flags
 #G="-g"
