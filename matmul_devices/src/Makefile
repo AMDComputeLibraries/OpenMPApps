@@ -35,7 +35,7 @@ endif
 
 ifeq ($(TEMPS),1)
   $(info    Compilation and linking save-temp Mode ON)
-  VERBOSE += -save-temps -fopenmp-dump-offload-linker-script
+  VERBOSE += -save-temps
 endif
 
 ifdef MP4BUILD
