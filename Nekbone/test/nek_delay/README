@@ -1,8 +1,0 @@
-This example will run a 
-nek_delay example that will
-simulate a load imbalance on
-precessors.
-
-This is triggered by setting
-PPLIST = NEKDLAY
-in makenek.

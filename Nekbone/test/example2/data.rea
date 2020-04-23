@@ -1,5 +1,0 @@
-.true.    = ifbrick                  ! brick or linear geometry
-50  50  1 = iel0,ielN(per proc),stride ! range of number of elements per proc.
-10  10  2 = nx0,nxN,stride           ! poly. order range for nx1
-0    0  0 = npx,npy,npz              ! np distrb, if != np, nekbone handle
-0    0  0 = mx,my,mz                 ! nelt distrb, if != nelt, nekbone handle
