@@ -36,7 +36,7 @@ ifeq "$(wildcard $(OMPIDIR) )" ""
   OMPIDIR = /usr/lib/x86_64-linux-gnu/openmpi
 endif
 
-CXXFLAGS = $(host_debug_flag) -O3 -I${OMPIDIR}/include -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU)
+CXXFLAGS = $(host_debug_flag) -O3 -I${OMPIDIR} -I${OMPIDIR}/include -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU)
 CXX = $(AOMP)/bin/clang++
 LFLAGS = -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -target $(AOMP_CPUTARGET)
 ifeq (nvptx,$(findstring nvptx,$(AOMP_GPUTARGET)))
