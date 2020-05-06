@@ -5,8 +5,11 @@
 rm -f check-openmpapps.txt times-openmpapps.txt
 echo ""
 echo ""
+
+script_dir=$(dirname "$0")
+pushd $script_dir
 path=$(pwd)
-base=$(basename $path)
+
 echo ""
 echo "RUNNING ALL TESTS IN: $path "
 echo ""
@@ -68,3 +71,4 @@ done
 
 cat times-openmpapps.txt
 cat check-openmpapps.txt
+popd
