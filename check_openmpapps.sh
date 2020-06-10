@@ -23,52 +23,75 @@ echo "" >> $tpath/times-openmpapps.txt
 echo "*************************************************************************************************" >> check-openmpapps.txt
 echo "*******A non-zero return code means the app failed to compile or there was a runtime issue*******" >> check-openmpapps.txt
 echo "*************************************************************************************************" >> check-openmpapps.txt
-
 execute_makefile(){
 	make clean
-	TT0=`date`
+	# Get time in seconds since epoch
+	TT0=`date '+%s'`
 	make
  ret=$?
  if [ $ret != 0 ]; then
        echo " Return Code for $base: $ret"  >> $1
        return
  fi
-	TT1=`date`
+	TT1=`date '+%s'`
 	make run
        echo " Return Code for $base: $?"  >> $1
-	TT2=`date`
+	TT2=`date '+%s'`
+
+	# App Build Time
+	BUILDMIN=$(( ($TT1 - $TT0)/60 ))
+	BUILDSEC=$(( ($TT1 - $TT0)%60 ))
+
+	# App Run Time
+	RUNMIN=$(( ($TT2 - $TT1)/60 ))
+	RUNSEC=$(( ($TT2 - $TT1)%60 ))
+
+	# Accumalate total times for all apps
+	(( TOTALBUILDSEC += (TT1 - TT0) ))
+	(( TOTALRUNSEC += (TT2 - TT1) ))
+
 	echo $base >> $tpath/times-openmpapps.txt
-	echo Test start $TT0 >> $tpath/times-openmpapps.txt
-	echo Compile end $TT1 >> $tpath/times-openmpapps.txt
-	echo executable end $TT2 >> $tpath/times-openmpapps.txt
+	echo Test start `date --date=@$TT0` >> $tpath/times-openmpapps.txt
+	echo Compile end `date --date=@$TT1` >> $tpath/times-openmpapps.txt
+	echo Executable end `date --date=@$TT2` >> $tpath/times-openmpapps.txt
+	echo App Build Time: $BUILDMIN min  $BUILDSEC sec >> $tpath/times-openmpapps.txt
+	echo App Run Time: $RUNMIN min  $RUNSEC sec >> $tpath/times-openmpapps.txt
         echo >> $tpath/times-openmpapps.txt
 }
 
-#Loop over all directories and execute the Makefile, directory levels where source code is found differs. Hence, why the conditional statements are used to determine where the Makefile is found.
+# Loop over all directories and execute the Makefile, directory levels where source code is found differs. Hence, why the conditional statements are used to determine where the Makefile is found.
 for directory in ./*/; do 
-	(cd "$directory" && path=$(pwd) && base=$(basename $path)
+	pushd "$directory" && path=$(pwd) && base=$(basename $path)
 		
-		#Apps that have Makefile on first level 
+		# Apps that have Makefile on first level
 		if [ $base == 'hpgmg-mp4' ] || [ $base == 'lulesh-mp4' ] ; then
 			execute_makefile "../check-openmpapps.txt"
 		
-		#COMD has a Makefile in a src folder, which is named src-omp, on second level
+		# COMD has a Makefile in a src folder, which is named src-omp, on second level
 		elif [ $base == 'comd-mp4' ] ; then
 			src_dir='src-omp'
 			cd $src_dir 
 			execute_makefile "../../check-openmpapps.txt"
 		
-		#Tests that have Makefile in a folder named src on second level	
+		# Tests that have Makefile in a folder named src on second level
 		else
 			src_dir='src'
 			cd $src_dir
 			execute_makefile "../../check-openmpapps.txt"
 		fi
+	popd
 
-	)
 	
 done
 
+# Convert total build/run times into minute/sec format
+TOTALBUILDMIN=$(( $TOTALBUILDSEC/60 ))
+TOTALBUILDSEC=$(( $TOTALBUILDSEC %60 ))
+TOTALRUNMIN=$(( $TOTALRUNSEC/60 ))
+TOTALRUNSEC=$(( $TOTALRUNSEC%60 ))
+
+echo "Total Build (all apps): $TOTALBUILDMIN min $TOTALBUILDSEC sec" >> $tpath/times-openmpapps.txt
+echo "Total Run Time (all apps): $TOTALRUNMIN min $TOTALRUNSEC sec" >> $tpath/times-openmpapps.txt
 cat times-openmpapps.txt
 cat check-openmpapps.txt
 popd
