@@ -54,8 +54,8 @@ execute_makefile(){
 	echo Test start `date --date=@$TT0` >> $tpath/times-openmpapps.txt
 	echo Compile end `date --date=@$TT1` >> $tpath/times-openmpapps.txt
 	echo Executable end `date --date=@$TT2` >> $tpath/times-openmpapps.txt
-	echo App Build Time: $BUILDMIN min  $BUILDSEC sec >> $tpath/times-openmpapps.txt
-	echo App Run Time: $RUNMIN min  $RUNSEC sec >> $tpath/times-openmpapps.txt
+	echo App $base Build Time: $BUILDMIN min  $BUILDSEC sec >> $tpath/times-openmpapps.txt
+	echo App $base Run Time: $RUNMIN min  $RUNSEC sec >> $tpath/times-openmpapps.txt
         echo >> $tpath/times-openmpapps.txt
 }
 
@@ -93,5 +93,23 @@ TOTALRUNSEC=$(( $TOTALRUNSEC%60 ))
 echo "Total Build (all apps): $TOTALBUILDMIN min $TOTALBUILDSEC sec" >> $tpath/times-openmpapps.txt
 echo "Total Run Time (all apps): $TOTALRUNMIN min $TOTALRUNSEC sec" >> $tpath/times-openmpapps.txt
 cat times-openmpapps.txt
+echo ""
+echo "--------Timings--------"
+appregex="App (.*)"
+newlineregex="App (.*)Run Time"
+file="times-openmpapps.txt"
+while read -r line; do
+	if [[ "$line" =~ $appregex ]]; then
+		appname="${BASH_REMATCH[1]}"
+		echo $appname
+	fi
+	if [[ "$line" =~ $newlineregex ]]; then
+		echo ""
+	fi
+done < "$file"
+echo "Total Build (all apps): $TOTALBUILDMIN min $TOTALBUILDSEC sec"
+echo "Total Run Time (all apps): $TOTALRUNMIN min $TOTALRUNSEC sec"
+
+echo "-----------------------"
 cat check-openmpapps.txt
 popd
