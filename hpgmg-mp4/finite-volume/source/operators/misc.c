@@ -57,7 +57,7 @@ void zero_vector(level_type * level, int id_a){
 #pragma omp target							\
   map(to:my_blocks[0:num_my_blocks], my_boxes[0:num_my_boxes])		\
   map(to:vector_base[0:(num_vectors*num_my_boxes*box_volume)])	\
-  map(from:vector_grid[index_grid: index_grid + size]) \
+ /* map(from:vector_grid[index_grid: index_grid + size]) */  \
   if(num_my_blocks >= GPU_THRESHOLD && GPU_OFFLOAD_ENABLE)
 #pragma omp teams distribute						\
   firstprivate(num_my_blocks, num_my_boxes, num_vectors,		\
