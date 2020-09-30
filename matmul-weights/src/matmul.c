@@ -4,7 +4,7 @@
 #include <omp.h>
 
 const int numthreads = 256;
-const int numteams = 56;
+const int numteams = 64;
 #ifndef NUMTHREADS
 #define NUMTHREADS numthreads
 #endif
