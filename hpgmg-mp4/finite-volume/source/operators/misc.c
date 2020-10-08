@@ -464,7 +464,7 @@ double dot(level_type * level, int id_a, int id_b){
 //------------------------------------------------------------------------------------------------------------------------------
 // return the max (infinity) norm of the vector id_a.
 // note, only non ghost zone values are included in this calculation
-double norm(level_type * level, int id_a){ // implements the max norm
+double localnorm(level_type * level, int id_a){ // implements the max norm
   double _timeStart = getTime();
 
   int block;
@@ -623,7 +623,7 @@ void shift_vector(level_type * level, int id_c, int id_a, double shift_a){
 double error(level_type * level, int id_a, int id_b){
   double h3 = level->h * level->h * level->h;
                add_vectors(level,VECTOR_TEMP,1.0,id_a,-1.0,id_b);            // VECTOR_TEMP = id_a - id_b
-  double   max =      norm(level,VECTOR_TEMP);                return(max);   // max norm of error function
+  double   max =      localnorm(level,VECTOR_TEMP);                return(max);   // max norm of error function
   double    L2 = sqrt( dot(level,VECTOR_TEMP,VECTOR_TEMP)*h3);return( L2);   // normalized L2 error ?
 }
 

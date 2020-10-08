@@ -33,7 +33,7 @@ int stencil_get_shape();
   void         extrapolate_betas(level_type * level);
 //------------------------------------------------------------------------------------------------------------------------------
 double                       dot(level_type * level, int id_a, int id_b);
-double                      norm(level_type * level, int id_a);
+double                 localnorm(level_type * level, int id_a);
 double                      mean(level_type * level, int id_a);
 double                     error(level_type * level, int id_a, int id_b);
   void               add_vectors(level_type * level, int id_c, double scale_a, int id_a, double scale_b, int id_b);

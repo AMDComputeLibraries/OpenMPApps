@@ -37,7 +37,7 @@ void BiCGStab(level_type * level, int x_id, int R_id, double a, double b, double
   scale_vector(level,r_id,1.0,r0_id);                                           // r[] = r0[]
   scale_vector(level,p_id,1.0,r0_id);                                           // p[] = r0[]
   double r_dot_r0 = dot(level,r_id,r0_id);                                      // r_dot_r0 = dot(r,r0)
-  double norm_of_r0 = norm(level,r_id);                                         // the norm of the initial residual...
+  double norm_of_r0 = localnorm(level,r_id);                                         // the norm of the initial residual...
   if(r_dot_r0   == 0.0){BiCGStabConverged=1;}                                   // entered BiCGStab with exact solution
   if(norm_of_r0 == 0.0){BiCGStabConverged=1;}                                   // entered BiCGStab with exact solution
   while( (j<jMax) && (!BiCGStabFailed) && (!BiCGStabConverged) ){               // while(not done){
@@ -60,7 +60,7 @@ void BiCGStab(level_type * level, int x_id, int R_id, double a, double b, double
       shift_vector(level,s_id,s_id,-mean_of_s);
     }
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    double norm_of_s = norm(level,s_id);                                        //   FIX - redundant??  norm of intermediate residual
+    double norm_of_s = localnorm(level,s_id);                                        //   FIX - redundant??  norm of intermediate residual
     if(norm_of_s == 0.0){BiCGStabConverged=1;break;}                            //   FIX - redundant??  if As_dot_As==0, then As must be 0 which implies s==0
     if(norm_of_s < desired_reduction_in_norm*norm_of_r0){BiCGStabConverged=1;break;}
     #ifdef KRYLOV_DIAGONAL_PRECONDITION                                         //
@@ -83,7 +83,7 @@ void BiCGStab(level_type * level, int x_id, int R_id, double a, double b, double
       shift_vector(level,r_id,r_id,-mean_of_r);
     }
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    double norm_of_r = norm(level,r_id);                                        //   norm of recursively computed residual (good enough??)
+    double norm_of_r = localnorm(level,r_id);                                        //   norm of recursively computed residual (good enough??)
     if(norm_of_r == 0.0){BiCGStabConverged=1;break;}                            //
     if(norm_of_r < desired_reduction_in_norm*norm_of_r0){BiCGStabConverged=1;break;}
     double r_dot_r0_new = dot(level,r_id,r0_id);                                //   r_dot_r0_new = dot(r,r0)

@@ -1051,8 +1051,8 @@ void richardson_error(mg_type *all_grids, int levelh, int u_id){
   restriction(all_grids->levels[levelh+2],VECTOR_TEMP,all_grids->levels[levelh+1],u_id,RESTRICT_CELL); // temp^4h = R u^2h
   add_vectors(all_grids->levels[levelh+1],VECTOR_TEMP,1.0,u_id,-1.0,VECTOR_TEMP);                      // temp^2h = u^2h - temp^2h = u^2h - R u^h
   add_vectors(all_grids->levels[levelh+2],VECTOR_TEMP,1.0,u_id,-1.0,VECTOR_TEMP);                      // temp^2h = u^4h - temp^4h = u^4h - R u^2h
-  double norm_of_u2h_minus_uh  = norm(all_grids->levels[levelh+1],VECTOR_TEMP); // || u^2h - R u^h  ||max
-  double norm_of_u4h_minus_u2h = norm(all_grids->levels[levelh+2],VECTOR_TEMP); // || u^4h - R u^2h ||max
+  double norm_of_u2h_minus_uh  = localnorm(all_grids->levels[levelh+1],VECTOR_TEMP); // || u^2h - R u^h  ||max
+  double norm_of_u4h_minus_u2h = localnorm(all_grids->levels[levelh+2],VECTOR_TEMP); // || u^4h - R u^2h ||max
   // estimate the error^h using ||u^2h - R u^h||
   if(all_grids->my_rank==0){fprintf(stdout,"  h=%0.15e  ||error||=%0.15e\n",all_grids->levels[levelh]->h,norm_of_u2h_minus_uh);fflush(stdout);}
   // log( ||u^4h - R u^2h|| / ||u^2h - R u^h|| ) / log(2) is an estimate of the order of the method (e.g. 4th order)
@@ -1119,9 +1119,9 @@ void MGSolve(mg_type *all_grids, int onLevel, int u_id, int F_id, double a, doub
   double norm_of_DinvF = 1.0;
   if(dtol>0){
     mul_vectors(all_grids->levels[onLevel],VECTOR_TEMP,1.0,F_id,VECTOR_DINV); // D^{-1}F
-    norm_of_DinvF = norm(all_grids->levels[onLevel],VECTOR_TEMP);		// ||D^{-1}F||
+    norm_of_DinvF = localnorm(all_grids->levels[onLevel],VECTOR_TEMP);		// ||D^{-1}F||
   }
-  if(rtol>0)norm_of_F = norm(all_grids->levels[onLevel],F_id);		// ||F||
+  if(rtol>0)norm_of_F = localnorm(all_grids->levels[onLevel],F_id);		// ||F||
 
   //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
   // make initial guess for e (=0) and setup the RHS
@@ -1145,7 +1145,7 @@ void MGSolve(mg_type *all_grids, int onLevel, int u_id, int F_id, double a, doub
     }
     residual(all_grids->levels[level],VECTOR_TEMP,e_id,F_id,a,b);
     if(dtol>0)mul_vectors(all_grids->levels[level],VECTOR_TEMP,1.0,VECTOR_TEMP,VECTOR_DINV); //  Using ||D^{-1}(b-Ax)||_{inf} as convergence criteria...
-    double norm_of_residual = norm(all_grids->levels[level],VECTOR_TEMP);
+    double norm_of_residual = localnorm(all_grids->levels[level],VECTOR_TEMP);
     double _timeNorm = getTime();
     all_grids->levels[level]->timers.Total += (double)(_timeNorm-_timeStart);
     if(all_grids->levels[level]->my_rank==0){
@@ -1201,9 +1201,9 @@ void FMGSolve(mg_type *all_grids, int onLevel, int u_id, int F_id, double a, dou
   double norm_of_DinvF = 1.0;
   if(dtol>0){
     mul_vectors(all_grids->levels[onLevel],VECTOR_TEMP,1.0,F_id,VECTOR_DINV);	// D^{-1}F
-    norm_of_DinvF = norm(all_grids->levels[onLevel],VECTOR_TEMP);		// ||D^{-1}F||
+    norm_of_DinvF = localnorm(all_grids->levels[onLevel],VECTOR_TEMP);		// ||D^{-1}F||
   }
-  if(rtol>0)norm_of_F = norm(all_grids->levels[onLevel],F_id);			// ||F||
+  if(rtol>0)norm_of_F = localnorm(all_grids->levels[onLevel],F_id);			// ||F||
 
   //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
   // initialize the RHS for the f-cycle to f...
@@ -1261,7 +1261,7 @@ void FMGSolve(mg_type *all_grids, int onLevel, int u_id, int F_id, double a, dou
     }
     residual(all_grids->levels[level],VECTOR_TEMP,e_id,F_id,a,b);
     if(dtol>0)mul_vectors(all_grids->levels[level],VECTOR_TEMP,1.0,VECTOR_TEMP,VECTOR_DINV); //  Using ||D^{-1}(b-Ax)||_{inf} as convergence criteria...
-    double norm_of_residual = norm(all_grids->levels[level],VECTOR_TEMP);
+    double norm_of_residual = localnorm(all_grids->levels[level],VECTOR_TEMP);
     double _timeNorm = getTime();
     all_grids->levels[level]->timers.Total += (double)(_timeNorm-_timeStart);
     if(all_grids->levels[level]->my_rank==0){
@@ -1341,7 +1341,7 @@ void MGPCG(mg_type *all_grids, int onLevel, int x_id, int F_id, double a, double
     shift_vector(level,r_id,r_id,-mean_of_r);
   }
   //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  double norm_of_r0 = norm(level,r_id);                                         // the norm of the initial residual...
+  double norm_of_r0 = localnorm(level,r_id);                                         // the norm of the initial residual...
   if(norm_of_r0 == 0.0){CGConverged=1;}                                         // entered CG with exact solution
   level->vcycles_from_this_level++;                                             //
   zero_vector(level,z_id);                                                      // z[] = 0
@@ -1363,9 +1363,9 @@ void MGPCG(mg_type *all_grids, int onLevel, int x_id, int F_id, double a, double
       shift_vector(level,r_id,r_id,-mean_of_r);
     }
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  //double norm_of_r = norm(level,r_id);                                        //   norm of intermediate residual (delusional convergence)
+  //double norm_of_r = localnorm(level,r_id);                                        //   norm of intermediate residual (delusional convergence)
     residual(level,VECTOR_TEMP,x_id,F_id,a,b);                                  //   true residual
-    double norm_of_r = norm(level,VECTOR_TEMP);                                 //   norm of true residual (true convergence test)
+    double norm_of_r = localnorm(level,VECTOR_TEMP);                                 //   norm of true residual (true convergence test)
     if(norm_of_r == 0.0){CGConverged=1;break;}                                  //
     if(level->my_rank==0){
       if(   j>1){fprintf(stdout,"\n          ");}
