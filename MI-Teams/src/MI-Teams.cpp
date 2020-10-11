@@ -68,20 +68,19 @@ int main(int argc, char **argv) {
    clock_gettime(CLOCK_REALTIME, &t2);
 
    int current = 0;
-   float final_sum;
-   int partial_sum = 0;
    #pragma omp target teams num_teams(NUMTEAMS) thread_limit(NUMTHREADS)
      //  distribute needs to distribute a loop
-     #pragma omp distribute parallel for reduction (+:final_sum,partial_sum)
+     #pragma omp distribute parallel for
      for (uint64_t sample=0; sample <MB; sample++) {
        // we only support one level of parallel within a team
        // subsequent parallel loops are serialized.
-       #pragma omp parallel for // reduction (+:partial_sum)
+       int partial_sum = 0;
+       #pragma omp parallel for reduction(+:partial_sum)
        for (int e=0; e<E; e++) {
          float embedding = g[sample*e];
          partial_sum += (embedding * embedding);
        }
-       final_sum += partial_sum / E;
+       float final_sum = partial_sum / E;
        int len = lengths[sample];
        for (uint64_t i=0; i < len; i++) {
          current++;
