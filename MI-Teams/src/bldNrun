@@ -1,0 +1,10 @@
+#!/bin/bash
+
+make clean
+export AOMP=~/rocm/aomp_12.0-0
+export LIBOMPTARGET_KERNEL_TRACE=1
+
+# we can change either NUMTEAMS or NUMTHREADS or both
+set -x
+CDEFS="-DNUMTEAMS=1024 -DNUMTHREADS=128" make run
+

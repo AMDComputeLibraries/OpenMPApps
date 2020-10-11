@@ -39,10 +39,10 @@ ifeq ($(TEMPS),1)
 endif
 
 ifdef MP4BUILD
-CLANG=$(AOMP)/bin/clang
+CLANG=$(AOMP)/bin/clang++
 
 CXXFLAGS = $(host_debug_flag) -O3 -I${OMPIDIR}/include -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU) $(VERBOSE) $(CDEFS)
-CXX = $(AOMP)/bin/clang
+CXX = $(AOMP)/bin/clang++
 LFLAGS = -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -target $(AOMP_CPUTARGET)
 ifeq (nvptx,$(findstring nvptx,$(AOMP_GPUTARGET)))
    CUDA ?= /usr/local/cuda
@@ -78,7 +78,7 @@ endif
 # Uncomment next line to activate kernel launch trace in this makefile.
 #SETDEBUGRUNENV += LIBOMPTARGET_KERNEL_TRACE=1
 
-SRCS = 	MI-Teams.c
+SRCS = 	MI-Teams.cpp
 
 OBJS = $(SRCS:%.cc=objs/%.o)
 all: objs MI-Teams
@@ -95,8 +95,8 @@ MI-Teams: objs $(OBJS)
 run: MI-Teams
 	$(SETDEBUGRUNENV) ./MI-Teams
 
-objs/MI-Teams.o: MI-Teams.c
-	$(CLANG) $(CXXFLAGS) -c MI-Teams.c -o $@
+objs/MI-Teams.o: MI-Teams.cpp
+	$(CLANG) $(CXXFLAGS) -c MI-Teams.cpp -o $@
 
 objs/%.o: %.c
 	$(CLANG) $(CXXFLAGS) -c $< -o $@

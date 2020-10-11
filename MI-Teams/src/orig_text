@@ -1,0 +1,40 @@
+  Constants:
+    MB = global batch size = 64*1024
+    E = embedding dimension = 128
+    M = table size = 20 million
+    P = average segment (bag) len
+    PT = sum of all segments, = MB * ~P
+
+  tensors:
+    g = gradients, size = MB * E, f16
+    h = gradient history, size = M, f32
+    w = weights, size = M * E, f16
+
+  arrays:
+    lengths : segment lengths, size=MB+
+    indices : PT
+
+  scalar inputs: lr, epsilon
+
+  #pragma omp teams distribute
+  current = 0
+  for sample in MB:
+    partial_sum = 0
+    #pragma omp parallel_for
+    for each embedding in g[sample][E]
+      partial_sum += (embedding * embedding)
+    final_sum = partial_sum / E
+
+    len = lengths[sample]
+    for i in len:
+      idx = indices[current++]
+      hi = h[idx] + final_sum
+      h[idx] = hi  # store to embedding
+      float_step = lr / (std::sqrt(hi) + epsilon);
+
+      // optional stochastic rounding here
+
+      #pragma omp parallel_for
+      for e in E:
+        w[idx][e] += g[sample][e] * float_step   # update weights                                                                           
+
