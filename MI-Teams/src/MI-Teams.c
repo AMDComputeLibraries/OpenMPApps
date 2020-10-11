@@ -15,17 +15,15 @@ const int numteams = 64;
 
     typedef float float16;
 
-    const uint64_t MB =32*1024;   // global batch size = 64*1024
+    const uint64_t MB =64*1024;   // global batch size = 64*1024
     const uint64_t E = 128;       // embedding dimension = 128
-    const uint64_t M = 200;  // table size = 20 million
-    //const uint64_t M = 20000000;  // table size = 20 million
+    const uint64_t M = 20000000;  // table size = 20 million
     const uint64_t P = 256;       // average segment (bag) len
     const uint64_t PT = 1024;// MB ;//* P;  // sum of all segments, = MB * ~P
 
 // tensors:
     float16 g[MB*E];   // gradients, size = MB * E, f16
     float   h[M];      // gradient history, size = M, f32
-    float16 w[M*E];    // weights, size = M * E, f16
     int lengths[MB];
     int indices[PT];
 
@@ -33,12 +31,14 @@ const int numteams = 64;
     float epsilon = 0.0000033333;
    
 int main(int argc, char **argv) {
+  struct timespec t0,t1,t2,t3;
+  clock_gettime(CLOCK_REALTIME, &t0);
+  float *myW = malloc(E*M*4);
 // initialize on host
-  struct timespec t0,t1,t2;
   fprintf(stderr, "Starting MI-Teams\n");
   // time the data copy separate from gflops
-  clock_gettime(CLOCK_REALTIME, &t0);
-  #pragma omp target data map(tofrom: g[:MB*E], h[:M], w[:M*E], lengths[:MB], indices[:PT])
+  clock_gettime(CLOCK_REALTIME, &t1);
+  #pragma omp target data map(tofrom: g[:MB*E], h[:M], lengths[:MB], indices[:PT]) map(from:myW[:M*E])
   {
     // leaving num_threads and teams off, to allow easier env-var control
     #pragma omp target teams num_teams(NUMTEAMS) thread_limit(NUMTHREADS)
@@ -63,7 +63,8 @@ int main(int argc, char **argv) {
       h[i] = i % E + 10;
     }
   }
-    clock_gettime(CLOCK_REALTIME, &t1);
+  clock_gettime(CLOCK_REALTIME, &t2);
+
     int current = 0;
     float final_sum;
     #pragma omp target teams num_teams(NUMTEAMS) thread_limit(NUMTHREADS)
@@ -88,17 +89,19 @@ int main(int argc, char **argv) {
           float float_step = lr / hi + epsilon;
           //float float_step = lr / sqrt(hi) + epsilon;
           for (uint64_t e=0; e<E; e++)
-            w[idx*E+e] += g[sample*E+e] * float_step;//   # update weights
+            myW[idx*E+e] += g[sample*E+e] * float_step;//   # update weights
         }
       }
-    clock_gettime(CLOCK_REALTIME, &t2);
+    clock_gettime(CLOCK_REALTIME, &t3);
   }
   double m = (t1.tv_sec - t0.tv_sec) + (t1.tv_nsec - t0.tv_nsec)/1e9;
-  fprintf(stderr, "Time %g for init\n", m);
+  fprintf(stderr, "Time %f for startup\n", m);
   double t = (t2.tv_sec - t1.tv_sec) + (t2.tv_nsec - t1.tv_nsec)/1e9;
-  fprintf(stderr, "Time %g compute\n", t);
+  fprintf(stderr, "Time %f gpu init\n", t);
   double c = (t2.tv_sec - t0.tv_sec) + (t2.tv_nsec - t0.tv_nsec)/1e9;
-  fprintf(stderr, "Time %g for init + compute\n", c);
+  fprintf(stderr, "Time %f for compute\n", c);
+  double d = (t2.tv_sec - t0.tv_sec) + (t2.tv_nsec - t0.tv_nsec)/1e9;
+  fprintf(stderr, "Time %f for startup + init + compute\n", d);
 
   fprintf(stderr, "Passed\n");
   return 0;
