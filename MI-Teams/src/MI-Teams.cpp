@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
   clock_gettime(CLOCK_REALTIME, &t1);
   // time the data copy separate from gflops
   // Map the arrays to device, we can omit if we have unified shared memory
-  #pragma omp target data map(tofrom: g[:MB*E], h[:M], lengths[:MB], indices[:PT]) map(from: W[:M*E])
+  #pragma omp target data map(alloc: g[:MB*E], h[:M], lengths[:MB], indices[:PT]) map(from: W[:M*E])
   {
    clock_gettime(CLOCK_REALTIME, &t2);
    // 1st kernel initializes ond evice
