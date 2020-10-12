@@ -19,7 +19,7 @@ typedef float float16;
 const uint64_t MB =64*1024;   // global batch size = 64*1024
 const uint64_t E = 128;       // embedding dimension = 128
 const uint64_t M = 20000000;  // table size = 20 million
-const uint64_t P = 256;       // average segment (bag) len
+const uint64_t P = 28;        // average segment (bag) len
 const uint64_t PT = MB * P;   // sum of all segments, = MB * ~P
 
 // tensors:
@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
     }
     #pragma omp distribute parallel for num_threads(NUMTHREADS)
     for (uint64_t i=0; i < MB; i++) {
-      lengths[i] = 100 + i % E * 10;
+      lengths[i] =  i % 57 + 1;
     }
     #pragma omp distribute parallel for num_threads(NUMTHREADS)
     for (uint64_t i=0; i < PT; i++) {
@@ -78,7 +78,7 @@ int main(int argc, char **argv) {
        float partial_sum = 0.0f;
        #pragma omp parallel for reduction(+:partial_sum)
        for (int e=0; e<E; e++) {
-         float embedding = g[sample*e];
+         float embedding = g[sample*E+e];
          partial_sum += (embedding * embedding);
        }
        float final_sum = partial_sum / E;
