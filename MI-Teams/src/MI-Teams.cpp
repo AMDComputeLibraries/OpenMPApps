@@ -33,17 +33,18 @@ float lr = 0.12345;
 float epsilon = 0.0000033333;
 
 int main(int argc, char **argv) {
-  struct timespec t0,t1,t2,t3;
+  struct timespec t0,t1,t2,t3,t4,t5;
   clock_gettime(CLOCK_REALTIME, &t0);
   float *W = new float[E*M];
 
 // initialize on host
-  fprintf(stderr, "Starting MI-Teams\n");
-  // time the data copy separate from gflops
+  fprintf(stdout, "Starting MI-Teams\n");
   clock_gettime(CLOCK_REALTIME, &t1);
+  // time the data copy separate from gflops
   // Map the arrays to device, we can omit if we have unified shared memory
   #pragma omp target data map(tofrom: g[:MB*E], h[:M], lengths[:MB], indices[:PT]) map(from: W[:M*E])
   {
+   clock_gettime(CLOCK_REALTIME, &t2);
    // 1st kernel initializes ond evice
    #pragma omp target teams num_teams(NUMTEAMS) thread_limit(NUMTHREADS)
    {
@@ -65,7 +66,7 @@ int main(int argc, char **argv) {
     }
    } // End of 1st kernel
 
-   clock_gettime(CLOCK_REALTIME, &t2);
+   clock_gettime(CLOCK_REALTIME, &t3);
 
    int current = 0;
    #pragma omp target teams num_teams(NUMTEAMS) thread_limit(NUMTHREADS)
@@ -94,18 +95,25 @@ int main(int argc, char **argv) {
            W[idx*E+e] += g[sample*E+e] * float_step;//   # update weights
        }
      } // end of 2nd kernel
+   clock_gettime(CLOCK_REALTIME, &t4);
   } // End of data map region
-  clock_gettime(CLOCK_REALTIME, &t3);
-  delete[] W;
-  double m = (t1.tv_sec - t0.tv_sec) + (t1.tv_nsec - t0.tv_nsec)/1e9;
-  fprintf(stderr, "Time %f for startup\n", m);
-  double t = (t2.tv_sec - t1.tv_sec) + (t2.tv_nsec - t1.tv_nsec)/1e9;
-  fprintf(stderr, "Time %f gpu init\n", t);
-  double c = (t3.tv_sec - t2.tv_sec) + (t3.tv_nsec - t2.tv_nsec)/1e9;
-  fprintf(stderr, "Time %f for compute\n", c);
-  double d = (t3.tv_sec - t0.tv_sec) + (t3.tv_nsec - t0.tv_nsec)/1e9;
-  fprintf(stderr, "Time %f for startup + init + compute\n", d);
+  clock_gettime(CLOCK_REALTIME, &t5);
+  double m;
+  m = (t1.tv_sec - t0.tv_sec) + (t1.tv_nsec - t0.tv_nsec)/1e9;
+  fprintf(stdout, "Time %f for startup\n", m);
+  m = (t2.tv_sec - t1.tv_sec) + (t2.tv_nsec - t1.tv_nsec)/1e9;
+  fprintf(stdout, "Time %f for gpu copy to device\n", m);
+  m = (t3.tv_sec - t2.tv_sec) + (t3.tv_nsec - t2.tv_nsec)/1e9;
+  fprintf(stdout, "Time %f gpu init\n", m);
+  m = (t4.tv_sec - t3.tv_sec) + (t4.tv_nsec - t3.tv_nsec)/1e9;
+  fprintf(stdout, "Time %f for compute\n", m);
+  m = (t5.tv_sec - t4.tv_sec) + (t5.tv_nsec - t4.tv_nsec)/1e9;
+  fprintf(stdout, "Time %f for gpu copy from device\n", m);
+  m = (t5.tv_sec - t0.tv_sec) + (t5.tv_nsec - t0.tv_nsec)/1e9;
+  fprintf(stdout, "Time %f total\n", m);
   // Check results here...
-  fprintf(stderr, "Passed\n");
+  for (int i=0; i< 10; i++) fprintf(stdout, "%f ", W[i*2000]);
+  delete[] W;
+  fprintf(stdout, "\nPassed\n");
   return 0;
 }
