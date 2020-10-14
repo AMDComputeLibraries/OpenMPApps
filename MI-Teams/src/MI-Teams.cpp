@@ -68,13 +68,13 @@ int main(int argc, char **argv) {
 
    clock_gettime(CLOCK_REALTIME, &t3);
 
-   int current = 0;
    #pragma omp target teams num_teams(NUMTEAMS) thread_limit(NUMTHREADS)
      //  distribute needs to distribute a loop
      #pragma omp distribute parallel for
      for (uint64_t sample=0; sample <MB; sample++) {
        // we only support one level of parallel within a team
        // subsequent parallel loops are serialized.
+       int current = sample * PT;
        float partial_sum = 0.0f;
        #pragma omp parallel for reduction(+:partial_sum)
        for (int e=0; e<E; e++) {
