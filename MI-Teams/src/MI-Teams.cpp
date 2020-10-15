@@ -18,7 +18,11 @@ typedef float float16;
 
 const uint64_t MB =64*1024;   // global batch size = 64*1024
 const uint64_t E = 128;       // embedding dimension = 128
+#if USE_LARGER
 const uint64_t M = 20000000;  // table size = 20 million
+#else
+const uint64_t M = 10000000;  // table size = 20 million
+#endif
 const uint64_t P = 28;        // average segment (bag) len
 const uint64_t PT = MB * P;   // sum of all segments, = MB * ~P
 
