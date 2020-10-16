@@ -81,7 +81,7 @@ endif
 SRCS = 	MI-Teams-exp1.cpp
 
 OBJS = $(SRCS:%.cc=objs/%.o)
-all: objs RMI-Teams-exp1
+all: objs MI-Teams-exp1
 
 objs:
 	mkdir objs
@@ -95,8 +95,8 @@ MI-Teams-exp1: objs $(OBJS)
 run: MI-Teams-exp1
 	$(SETDEBUGRUNENV) ./MI-Teams-exp1
 
-objs/MI-Teams-exp1.o: MI-Teams-team-2par.cpp
-	$(CLANG) $(CXXFLAGS) -c MI-Teams-team-2par.cpp -o $@
+objs/MI-Teams-exp1.o: MI-Teams-exp1.cpp
+	$(CLANG) $(CXXFLAGS) -c MI-Teams-exp1.cpp -o $@
 
 objs/%.o: %.c
 	$(CLANG) $(CXXFLAGS) -c $< -o $@
@@ -104,4 +104,4 @@ objs/%.o: %.c
 .PHONY: clean
 
 clean:
-	rm -f MI-Teams-team-2par objs/*.o
+	rm -f MI-Teams-exp1 objs/*.o

@@ -77,7 +77,7 @@ int main(int argc, char **argv) {
        float partial_sum = 42.0f;
        float final_sum = partial_sum / E;
        int len = 28; //lengths[sample];
-       #pragma omp parallel for
+       #pragma omp parallel for num_threads(len)
        for (uint64_t i=0; i < len; i++) {
          current++;
          if (current>=PT) current = 0;
