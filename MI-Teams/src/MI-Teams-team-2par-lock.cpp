@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
      for (uint64_t sample=0; sample <MB; sample++) {
        // we only support one level of parallel within a team
        // subsequent parallel loops are serialized.
-       int current = sample * PT;
+       int current = sample * P;
        float partial_sum = 0.0f;
        #pragma omp parallel for reduction(+:partial_sum)
        for (int e=0; e<E; e++) {
@@ -85,19 +85,17 @@ int main(int argc, char **argv) {
        #pragma omp parallel for
        for (uint64_t i=0; i < len; i++) {
 	 float float_step;
-	 int idx;
-#pragma omp critical 
-         {
-           current = ++current % PT;
-           idx = indices[current] % M;
+	 int local_cur = current + i;
+	 int idx = indices[local_cur] % M;
+#pragma omp atomic update
      	   h[idx] += final_sum;
-	 }
          float_step = lr / std::sqrt(h[idx]) + epsilon;
          // optional stochastic rounding here
          for (uint64_t e=0; e<E; e++)
 #pragma omp atomic update
            W[idx*E+e] += g[sample*E+e] * float_step;//   # update weights
        }
+       current = (current + len) % PT;
      }
    } // end of 2nd kernel
    clock_gettime(CLOCK_REALTIME, &t4);
