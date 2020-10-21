@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
      for (uint64_t sample=0; sample <MB; sample++) {
        // we only support one level of parallel within a team
        // subsequent parallel loops are serialized.
-       int current = sample * PT;
+       int current = sample * P;
        float partial_sum = 42.0f;
        float final_sum = partial_sum / E;
        int len = 28; //lengths[sample];
