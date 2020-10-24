@@ -5,6 +5,7 @@
 rm -f check-openmpapps.txt times-openmpapps.txt
 echo ""
 echo ""
+let TotFails = 0
 
 script_dir=$(dirname "$0")
 pushd $script_dir
@@ -31,6 +32,7 @@ execute_makefile(){
  ret=$?
  if [ $ret != 0 ]; then
        echo " Return Code for $base: $ret"  >> $1
+       (( TotFails++ ))
        return
  fi
 	TT1=`date '+%s'`
@@ -113,3 +115,4 @@ echo "Total Run Time (all apps): $TOTALRUNMIN min $TOTALRUNSEC sec"
 echo "-----------------------"
 cat check-openmpapps.txt
 popd
+exit $TotFails
