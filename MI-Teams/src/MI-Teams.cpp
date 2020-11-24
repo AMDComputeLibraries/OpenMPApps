@@ -17,7 +17,8 @@ const int numteams = 2048;
 typedef float float16;
 
 const uint64_t MB =64*1024;   // global batch size = 64*1024
-const uint64_t E = 128;       // embedding dimension = 128
+const uint64_t E = 4;       // embedding dimension = 128
+//const uint64_t E = 128;       // embedding dimension = 128
 #if USE_LARGER
 const uint64_t M = 20000000;  // table size = 20 million
 #else
