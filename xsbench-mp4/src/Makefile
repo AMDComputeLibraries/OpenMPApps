@@ -5,7 +5,7 @@
 COMPILER    ?= aomp
 OPTIMIZE    = no
 PROFILE     = no
-MPI         = no
+MPI         ?= no
 VEC_INFO    = no
 VERIFY      = yes
 BINARY_DUMP = no
@@ -165,8 +165,14 @@ endif
 
 # MPI
 ifeq ($(MPI),yes)
-  CC = mpicc
-  CFLAGS += -DMPI
+  MPI_INC = $(HOME)/openmpi-4.0.3-install/include
+  MPI_LIB = $(HOME)/openmpi-4.0.3-install/lib
+  MPI_RUN = $(HOME)/openmpi-4.0.3-install/bin/mpirun
+  CC      = $(AOMP)/bin/clang
+  CFLAGS  += -DMPI -I$(MPI_INC)
+  LDFLAGS += -L$(MPI_LIB) -lmpi
+  SHIM = $(AOMP)/bin/openmpi_set_cu_mask
+  RANKS ?= 1
 endif
 
 # Verification of results mode
@@ -210,6 +216,10 @@ edit:
 
 run: $(program)
 	$(SETDEBUGRUNENV) ./$(program) -s small
+
+mpirun: $(program)
+	@echo "Running mpirun -np $(RANKS)  $(program)"
+	LD_LIBRARY_PATH=$(MPI_LIB) $(SETDEBUGRUNENV) $(MPI_RUN) -np $(RANKS) $(SHIM) $(PWD)/$(program)
 
 bgqrun: XSBench
 	qsub -t 10 -n 1 -O test XSBench
