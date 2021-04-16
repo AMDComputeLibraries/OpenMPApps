@@ -9,7 +9,7 @@ int numteams = 56;
 #ifdef LARGE
 #define N (10*7*5*4*3*2)  // 8400
 #else
-#define N  (5*7*5*3*2)    // 1050
+#define N  (5*7*5*3*4)    // 1050
 #endif
 float matA[N][N];
 float matB[N][N];
