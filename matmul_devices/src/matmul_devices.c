@@ -102,7 +102,7 @@ fprintf(stderr,"Generate expected\n");
   for (int i = 0; i < N; i++) {
     for (int j = 0; j < N; j++) {
       if (matE[i][j] != matC[i][j]) {
-        fprintf(stderr, "Failed %d %d\n",i,j);
+        fprintf(stderr, "Failed %d %d %x %x\n",i,j,*(int*)&matE[i][j],*(int*)&matC[i][j]);
         return 1;
       }
     }
