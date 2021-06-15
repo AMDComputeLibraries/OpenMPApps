@@ -40,11 +40,11 @@ execute_makefile(){
  ret=$?
  echo " Return Code for $base: $ret"  >> $1
  if [ $ret != 0 ]; then
-   if [ $base == 'matmul_devices' ]; then
-       echo " Skipping failing $base" >> $1
-   else
+#  if [ $base == 'matmul_devices' ]; then
+#      echo " Skipping failing $base" >> $1
+#  else
        (( TotFails++ ))
-   fi
+#  fi
  fi
 	TT2=`date '+%s'`
 
