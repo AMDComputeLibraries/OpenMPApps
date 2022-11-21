@@ -9,7 +9,7 @@ int numteams = 56;
 #ifdef LARGE
 #define N (10*7*5*4*3*2)  // 8400
 #else
-#define N  (5*7*5*3*8*2)    // 1050
+#define N  (5*7*5)  
 #endif
 float matA[N][N];
 float matB[N][N];
@@ -19,10 +19,10 @@ float matE[N][N];
 #pragma requires unified_shared_memory 
 
 int main(int argc, char **argv) {
-  int DevS = 2;
-  char *Env = getenv("OMP_DEV_LIMIT");
-  if (Env)
-    DevS = atoi(Env);
+  int DevS = 1;
+//char *Env = getenv("OMP_DEV_LIMIT");
+//if (Env)
+//  DevS = atoi(Env);
   fprintf(stderr, "DevS=%d\n",DevS);
 
   if (N % DevS != 0) {
