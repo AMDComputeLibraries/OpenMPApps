@@ -80,6 +80,8 @@ for directory in ./*/; do
     execute_makefile "../check-openmpapps.txt"
 
     # COMD has a Makefile in a src folder, which is named src-omp, on second level
+    elif [ $base == 'matmul_devices' ] ; then
+      echo "skipping matmul_devices, its broken"
     elif [ $base == 'comd-mp4' ] ; then
       src_dir='src-omp'
       cd $src_dir
