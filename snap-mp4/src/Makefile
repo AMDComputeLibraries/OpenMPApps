@@ -117,7 +117,7 @@ snap: $(OBJS)
 
 run: snap
 	#$(SETDEBUGRUNENV) OMP_MAX_TEAMS_DEFAULT=128 ./snap snap_input
-	$(SETDEBUGRUNENV) ./snap snap_input
+	LD_LIBRARY_PATH=$(OMPIDIR)/lib:$(LD_LIBRARY_PATH) $(SETDEBUGRUNENV) ./snap snap_input
 #$(CLANG) $(CXXLNKFLAGS) -o $@ $(MPILIBS) $(LIBS) $(OBJS) $(TFLAGS)
 
 objs/snap_main.o: snap_main.cc mp4_planes.h
