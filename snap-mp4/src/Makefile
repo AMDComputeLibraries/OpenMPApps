@@ -31,25 +31,35 @@ DEBUG_LEVEL ?= 0
 ifdef MP4BUILD 
 CLANG=$(AOMP)/bin/clang++
 
-OMPIDIR ?= /usr/lib/openmpi
+OMPIDIR ?= ~/local/openmpi
 ifeq "$(wildcard $(OMPIDIR))" ""
-  $(warning openmpi not found at $(OMPIDIR))
-  OMPIDIR = /usr/lib/x86_64-linux-gnu/openmpi
+  OMPIDIR = /opt/openmpi-4.1.5
   ifeq "$(wildcard $(OMPIDIR))" ""
-    $(warning openmpi not found at $(OMPIDIR))
-    OMPIDIR = /usr/local/openmpi
+    OMPIDIR = /opt/openmpi-4.1.4
     ifeq "$(wildcard $(OMPIDIR))" ""
-      $(warning openmpi not found at $(OMPIDIR))
-      OMPIDIR = /usr/local
-      ifeq "$(wildcard $(OMPIDIR)/lib/libmpi*)" ""
-        $(warning openmpi not found at $(OMPIDIR))
-        $(error Openmpi not found on the system and is required. Set OMPIDIR to openmpi installation)
+      OMPIDIR = /usr/local/openmpi
+      ifeq "$(wildcard $(OMPIDIR))" ""
+        OMPIDIR = /usr/lib/x86_64-linux-gnu/openmpi
+        ifeq "$(wildcard $(OMPIDIR)/lib/libmpi*)" ""
+          OMPIDIR = /usr/lib/openmpi
+          ifeq "$(wildcard $(OMPIDIR)/lib/libmpi*)" ""
+            OMPIDIR = /usr/local
+            ifeq "$(wildcard $(OMPIDIR)/lib/libmpi*)" ""
+              OMPIDIR = /usr/local
+              MPI64 = 64
+              ifeq "$(wildcard $(OMPIDIR)/lib$(MPI64)/libmpi*)" ""
+                $(error Openmpi not found on the system and is required. Set OMPIDIR to openmpi installation)
+              endif
+            endif
+          endif
+        endif
       endif
     endif
   endif
 endif
 
 $(info -- openmpi found at $(OMPIDIR))
+MPILIBS ?= -L${OMPIDIR}/lib$(MPI64) -lmpi
 
 CXXFLAGS = $(host_debug_flag) -O3 -I${OMPIDIR} -I${OMPIDIR}/include -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU)
 CXX = $(AOMP)/bin/clang++

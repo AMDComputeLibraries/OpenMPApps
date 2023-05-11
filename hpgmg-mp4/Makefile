@@ -57,7 +57,7 @@ all: build
 
 hpgmgconf.pyc:
 	@echo "Running config for directory $(HPGMG_ARCH).  "
-	./configure --arch=$(HPGMG_ARCH) --no-fe --no-fv-mpi --CC=$(AOMP)/bin/clang --CFLAGS="-O3 $(host_debug_flags) -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU)" --LDFLAGS="-lm -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -target $(AOMP_CPUTARGET)" --LDLIBS="$(CUDA_LIBS)"
+	PATH=/usr/bin:$(PATH) ./configure --arch=$(HPGMG_ARCH) --no-fe --no-fv-mpi --CC=$(AOMP)/bin/clang --CFLAGS="-O3 $(host_debug_flags) -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU)" --LDFLAGS="-lm -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -target $(AOMP_CPUTARGET)" --LDLIBS="$(CUDA_LIBS)"
 
 build:	hpgmgconf.pyc
 	$(SETDEBUGLIB) $(MAKE) -C $(HPGMG_ARCH)
