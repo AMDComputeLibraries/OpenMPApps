@@ -21,6 +21,7 @@ int main(int argc, char **argv) {
   char *Env = getenv("OMP_DEV_LIMIT");
   if (Env)
     DevS = atoi(Env);
+  if (DevS > 8) DevS = 8;
   fprintf(stderr, "DevS=%d\n",DevS);
 
   if (N % DevS != 0) {
