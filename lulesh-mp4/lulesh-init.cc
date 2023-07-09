@@ -138,8 +138,8 @@ Domain::Domain(Int_t numRanks, Index_t colLoc,
    SetupThreadSupportStructures();
 #else
    // These arrays are not used if we're not threaded
-   m_nodeElemStart = (int*) NULL;
-   m_nodeElemCornerList = (int *)NULL;
+   m_nodeElemStart = NULL;
+   m_nodeElemCornerList = NULL;
 #endif
 
    // Setup region index sets. For now, these are constant sized
@@ -338,8 +338,8 @@ Domain::SetupThreadSupportStructures()
   }
   else {
     // These arrays are not used if we're not threaded
-    m_nodeElemStart = (int *)NULL;
-    m_nodeElemCornerList = (int *)NULL;
+    m_nodeElemStart = NULL;
+    m_nodeElemCornerList = NULL;
   }
 }
 
