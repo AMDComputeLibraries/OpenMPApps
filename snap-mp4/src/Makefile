@@ -31,7 +31,7 @@ DEBUG_LEVEL ?= 0
 ifdef MP4BUILD 
 CLANG=$(AOMP)/bin/clang++
 
-OMPIDIR ?= ~/local/openmpi
+OMPIDIR ?= $(HOME)/local/openmpi
 ifeq "$(wildcard $(OMPIDIR))" ""
   OMPIDIR = /opt/openmpi-4.1.5
   ifeq "$(wildcard $(OMPIDIR))" ""
