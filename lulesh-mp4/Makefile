@@ -111,7 +111,7 @@ lulesh2.0: $(OBJECTS2.0)
 
 run:	lulesh2.0
 	@echo "Running lulesh2.0"
-	$(SETDEBUGRUNENV) ./lulesh2.0
+	OMP_NUM_THREADS=16 $(SETDEBUGRUNENV) ./lulesh2.0
 
 clean:
 	/bin/rm -f *.o *~ *.tgt* $(OBJECTS) $(LULESH_EXEC)
