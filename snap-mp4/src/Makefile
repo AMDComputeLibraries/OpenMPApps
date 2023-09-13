@@ -61,7 +61,12 @@ ifeq "$(wildcard $(OMPIDIR))" ""
   endif
 endif
 
-$(info -- openmpi found at $(OMPIDIR))
+ifeq "$(wildcard $(OMPIDIR)/lib64)" ""
+  MPI64 = ""
+else
+  MPI64 = 64
+endif
+$(info -- openmpi found at $(OMPIDIR)/lib$(MPI64))
 MPILIBS ?= -L${OMPIDIR}/lib$(MPI64) -lmpi
 
 CXXFLAGS = $(host_debug_flag) -O3 -I${OMPIDIR} -I${OMPIDIR}/include -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU)
