@@ -61,7 +61,7 @@ ifeq "$(wildcard $(OMPIDIR))" ""
   endif
 endif
 
-ifeq "$(wildcard $(OMPIDIR)/lib64)" ""
+ifeq "$(wildcard $(OMPIDIR)/lib64/libmpi.so)" ""  
   MPI64 = ""
 else
   MPI64 = 64
