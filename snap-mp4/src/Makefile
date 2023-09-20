@@ -31,45 +31,8 @@ DEBUG_LEVEL ?= 0
 ifdef MP4BUILD 
 CLANG=$(AOMP)/bin/clang++
 
-OMPIDIR ?= $(HOME)/local/openmpi
-ifeq "$(wildcard $(OMPIDIR))" ""
-  OMPIDIR = /opt/openmpi-4.1.5
-  ifeq "$(wildcard $(OMPIDIR))" ""
-    OMPIDIR = /opt/openmpi-4.1.4
-    ifeq "$(wildcard $(OMPIDIR))" ""
-      OMPIDIR = /usr/local/openmpi
-      ifeq "$(wildcard $(OMPIDIR))" ""
-        OMPIDIR = /usr/lib/x86_64-linux-gnu/openmpi
-        ifeq "$(wildcard $(OMPIDIR)/lib/libmpi*)" ""
-          OMPIDIR = /usr/lib/openmpi
-          ifeq "$(wildcard $(OMPIDIR)/lib/libmpi*)" ""
-            OMPIDIR = /usr/lib64/openmpi
-            ifeq "$(wildcard $(OMPIDIR)/lib/libmpi*)" ""
-              OMPIDIR = /usr/local
-              ifeq "$(wildcard $(OMPIDIR)/lib/libmpi*)" ""
-                OMPIDIR = /usr/local
-                MPI64 = 64
-                ifeq "$(wildcard $(OMPIDIR)/lib$(MPI64)/libmpi*)" ""
-                  $(error Openmpi not found on the system and is required. Set OMPIDIR to openmpi installation)
-                endif
-              endif
-            endif
-          endif
-        endif
-      endif
-    endif
-  endif
-endif
 
-ifeq "$(wildcard $(OMPIDIR)/lib64/libmpi.so)" ""  
-  MPI64 = ""
-else
-  MPI64 = 64
-endif
-$(info -- openmpi found at $(OMPIDIR)/lib$(MPI64))
-MPILIBS ?= -L${OMPIDIR}/lib$(MPI64) -lmpi
-
-CXXFLAGS = $(host_debug_flag) -O3 -I${OMPIDIR} -I${OMPIDIR}/include -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU)
+CXXFLAGS = $(host_debug_flag) -O3  -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU)
 CXX = $(AOMP)/bin/clang++
 LFLAGS = -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -target $(AOMP_CPUTARGET)
 ifeq (nvptx,$(findstring nvptx,$(AOMP_GPUTARGET)))
@@ -79,13 +42,12 @@ endif
 CXXLNKFLAGS = $(host_debug_flag)
 
 else
-CXXFLAGS = $(host_debug_flag) -O3 -I${OMPIDIR/include
+CXXFLAGS = $(host_debug_flag) -O3 
 CXXLNKFLAGS = $(host_debug_flag)
 LFLAGS = 
 LIBS = -lm 
 endif
 
-MPILIBS ?= -L${OMPIDIR}/lib -lmpi
 
 ifeq ($(DEBUG_LEVEL),0)
   SETDEBUGLIB =
@@ -131,12 +93,12 @@ snap: $(OBJS)
 	@echo
 	@echo linking snap
 	@echo
-	$(SETDEBUGLIB) $(CLANG) $(CXXFLAGS) $(OBJS) $(CXXLNKFLAGS) $(MPILIBS) -o $@ $(LIBS) $(LFLAGS)
+	$(SETDEBUGLIB) $(CLANG) $(CXXFLAGS) $(OBJS) $(CXXLNKFLAGS)  -o $@ 
 
 run: snap
 	#$(SETDEBUGRUNENV) OMP_MAX_TEAMS_DEFAULT=128 ./snap snap_input
-	LD_LIBRARY_PATH=$(OMPIDIR)/lib:$(LD_LIBRARY_PATH) $(SETDEBUGRUNENV) ./snap snap_input
-#$(CLANG) $(CXXLNKFLAGS) -o $@ $(MPILIBS) $(LIBS) $(OBJS) $(TFLAGS)
+	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH) $(SETDEBUGRUNENV) ./snap snap_input
+#$(CLANG) $(CXXLNKFLAGS) -o $@ $(LIBS) $(OBJS) $(TFLAGS)
 
 objs/snap_main.o: snap_main.cc mp4_planes.h
 	$(CLANG) $(CXXFLAGS) -c snap_main.cc -o $@

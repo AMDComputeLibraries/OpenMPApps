@@ -30,7 +30,6 @@ int inner_convergence(
 
     // Do an AllReduce for each group to work out global maximum difference
     double recv[problem->ng];
-    MPI_Allreduce(diffs, recv, problem->ng, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
     int result = 0;
     for (unsigned int g = 0; g < problem->ng; g++)
     {
@@ -69,7 +68,6 @@ bool outer_convergence(
 
     // Do an AllReduce to work out global maximum difference
     double recv;
-    MPI_Allreduce(max_diff, &recv, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
     *max_diff = recv;
     return *max_diff <= 100.0 * problem->epsi;
 }

@@ -210,8 +210,6 @@ void broadcast_problem(struct problem *problem, int rank)
         problem->tf,
         problem->epsi
     };
-    MPI_Bcast(ints, 14, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
-    MPI_Bcast(doubles, 9, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     if (rank != 0)
     {
         problem->nx = ints[0];

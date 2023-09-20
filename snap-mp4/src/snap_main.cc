@@ -33,7 +33,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <stdbool.h>
 #include <time.h>
-#include <mpi.h>
 
 #include "global.h"
 #include "comms.h"
@@ -62,7 +61,6 @@ double sweep_mpi_recv_time = 0.0;
 */
 
 /** \brief Cartesian communicator */
-extern MPI_Comm snap_comms;
 
 /** \brief Print out starting information */
 void print_banner(void);
@@ -84,21 +82,14 @@ void print_timing_report(struct timers * timers, struct problem * problem, unsig
 /** \brief Main function, contains iteration loops */
 int main(int argc, char **argv)
 {
-    int mpi_err = MPI_Init(&argc, &argv);
-    check_mpi(mpi_err, "MPI_Init");
 
     struct timers timers;
     memset(&timers, 0, sizeof(timers));
     timers.setup_time = wtime();
     timers.convergence_time = 0.0;
 
-    int rank,size;
+    int rank=0,size=1;
     size_t nsize;
-    mpi_err = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    check_mpi(mpi_err, "Getting MPI rank");
-
-    mpi_err = MPI_Comm_size(MPI_COMM_WORLD, &size);
-    check_mpi(mpi_err, "Getting MPI size");
 
     struct problem problem;
 
