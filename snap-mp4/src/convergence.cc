@@ -34,7 +34,7 @@ int inner_convergence(
     for (unsigned int g = 0; g < problem->ng; g++)
     {
 //printf("%d diffs %g recv %g\n",g,diffs[g] , recv[g]);
-        diffs[g] = recv[g];
+        diffs[g] = 0.0;//recv[g];
         result += (diffs[g] >= problem->epsi)?1:0;
     }
     return result;
@@ -67,7 +67,7 @@ bool outer_convergence(
 
 
     // Do an AllReduce to work out global maximum difference
-    double recv;
+    double recv =0.0;
     *max_diff = recv;
     return *max_diff <= 100.0 * problem->epsi;
 }
