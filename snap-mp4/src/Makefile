@@ -32,7 +32,7 @@ ifdef MP4BUILD
 CLANG=$(AOMP)/bin/clang++
 
 
-CXXFLAGS = $(host_debug_flag) -O3  -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU)
+CXXFLAGS = $(host_debug_flag) -O3  -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU) -fgpu-rdc -Wl,--lto-partitions=4
 CXX = $(AOMP)/bin/clang++
 LFLAGS = -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -target $(AOMP_CPUTARGET)
 ifeq (nvptx,$(findstring nvptx,$(AOMP_GPUTARGET)))
