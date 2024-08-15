@@ -28,6 +28,7 @@ int main(int argc, char **argv) {
       matA[i][j] = i+j;
       matB[i][j] = i+j;
       matE[i][j] = 0;
+      matC[i][j] = 0;
     }
   }
 // generate expected result on host
