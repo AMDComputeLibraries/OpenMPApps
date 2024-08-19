@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
   fprintf(stderr, "Starting matmul\n");
   // time the data copy separate from gflops
   clock_gettime(CLOCK_REALTIME, &t0);
-  #pragma omp target data map(to: matA, matB) map(from: matC)
+  #pragma omp target data map(to: matA, matB) map(tofrom: matC)
   {
     clock_gettime(CLOCK_REALTIME, &t1);
     // leaving num_threads and teams off, to allow easier env-var control
