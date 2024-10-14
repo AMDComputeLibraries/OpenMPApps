@@ -1,24 +1,10 @@
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+include $(mkfile_dir)../Makefile.defs
+
 HPGMG_ARCH := $(if $(PETSC_ARCH),$(PETSC_ARCH),build)
 
 host_debug_flag ?=
 
-# --- Standard Makefile check for AOMP installation ---
-ifeq ("$(wildcard $(AOMP))","")
-  ifneq ($(AOMP),)
-    $(warning AOMP not found at $(AOMP))
-  endif
-  AOMP = $(HOME)/rocm/aomp
-  ifeq ("$(wildcard $(AOMP))","")
-    $(warning AOMP not found at $(AOMP))
-    AOMP = /opt/rocm/aomp
-    ifeq ("$(wildcard $(AOMP))","")
-      $(warning AOMP not found at $(AOMP))
-      $(error Please install AOMP or correctly set env-var AOMP)
-    endif
-  endif
-endif
-# --- End Standard Makefile check for AOMP installation ---
-INSTALLED_GPU  = $(shell $(AOMP)/bin/mygpu -d gfx900)
 AOMP_GPU ?= $(INSTALLED_GPU)
 AOMP_GPUTARGET = amdgcn-amd-amdhsa
 ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))

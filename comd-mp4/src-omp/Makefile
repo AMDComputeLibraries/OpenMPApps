@@ -1,5 +1,8 @@
 # Makefile for src-openmp
 
+mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+include $(mkfile_dir)../../Makefile.defs
+
 SHELL = /bin/bash
 host_debug_flag ?=
 
@@ -11,23 +14,6 @@ DOUBLE_PRECISION = ON
 # MPI for parallel (ON/OFF)
 DO_MPI = OFF
 
-# --- Standard Makefile check for AOMP installation ---
-ifeq ("$(wildcard $(AOMP))","")
-  ifneq ($(AOMP),)
-    $(warning AOMP not found at $(AOMP))
-  endif
-  AOMP = $(HOME)/rocm/aomp
-  ifeq ("$(wildcard $(AOMP))","")
-    $(warning AOMP not found at $(AOMP))
-    AOMP = /opt/rocm/aomp
-    ifeq ("$(wildcard $(AOMP))","")
-      $(warning AOMP not found at $(AOMP))
-      $(error Please install AOMP or correctly set env-var AOMP)
-    endif
-  endif
-endif
-# --- End Standard Makefile check for AOMP installation ---
-INSTALLED_GPU  = $(shell $(AOMP)/bin/mygpu -d gfx900)
 AOMP_GPU ?= $(INSTALLED_GPU)
 AOMP_GPUTARGET = amdgcn-amd-amdhsa
 # Default is Radeon vega/gfx900, for nvidia "export AOMP_GPU=sm_35"
