@@ -34,7 +34,7 @@ AOMP_GPUTARGET = amdgcn-amd-amdhsa
 ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
   AOMP_GPUTARGET = nvptx64-nvidia-cuda
 endif
-AOMP_CPUTARGET ?= x86_64-pc-linux-gnu
+AOMP_CPUTARGET ?= $(shell awk '/LLVM_HOST_TRIPLE/ {print substr($$2,1,length($$2)-1)}' $(AOMP)/lib/cmake/llvm/LLVMConfig.cmake | tr -d \")
 DEBUG_LEVEL ?= 0
 
 ### Set your desired C compiler and any necessary flags.  Note that CoMD
