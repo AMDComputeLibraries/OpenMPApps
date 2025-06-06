@@ -24,7 +24,7 @@ AOMP_GPUTARGET = amdgcn-amd-amdhsa
 ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
    AOMP_GPUTARGET = nvptx64-nvidia-cuda
 endif
-AOMP_CPUTARGET ?= $(shell awk '/LLVM_HOST_TRIPLE/ {print substr($$2,1,length($$2)-1)}' $(AOMP)/lib/cmake/llvm/LLVMConfig.cmake | tr -d \")
+AOMP_CPUTARGET ?= $(shell $(AOMP)/bin/clang --version | grep Target: | cut -d" " -f2)
 ifeq (nvptx,$(findstring nvptx,$(AOMP_GPUTARGET)))
   CUDA ?= /usr/local/cuda
   CUDA_LIBS=-L$(CUDA)/lib64 -lcuda -lcudart -lelf -lffi

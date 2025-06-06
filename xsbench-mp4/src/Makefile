@@ -76,7 +76,7 @@ endif
   ifeq (sm_,$(findstring sm_,$(AOMP_GPU)))
     AOMP_GPUTARGET = nvptx64-nvidia-cuda
   endif
-  AOMP_CPUTARGET ?= $(shell awk '/LLVM_HOST_TRIPLE/ {print substr($$2,1,length($$2)-1)}' $(AOMP)/lib/cmake/llvm/LLVMConfig.cmake | tr -d \")
+  AOMP_CPUTARGET ?= $(shell $(AOMP)/bin/clang --version | grep Target: | cut -d" " -f2)
   CFLAGS = -O3 -target $(AOMP_CPUTARGET) -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -Xopenmp-target=$(AOMP_GPUTARGET) -march=$(AOMP_GPU) -D__GPU__
   CC = $(AOMP)/bin/clang
   LDFLAGS = -fopenmp -fopenmp-targets=$(AOMP_GPUTARGET) -target $(AOMP_CPUTARGET) -lm
